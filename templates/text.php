@@ -7,6 +7,6 @@
 ?>
 
 <div class="pcm-text pcm-filter">
-    <label for="<?= $param ?>"><strong><?= $label ?></strong> like</label>
-    <input name="<?= $param ?>" id="<?= $param ?>" type="text" class="" value="<?= $value ?>">
+    <label for="<?php echo $param ?>"><strong><?php echo $label ?></strong> like</label>
+    <input name="<?php echo $param ?>" id="<?php echo $param ?>" type="text" class="" value="<?php echo $value ?>">
 </div>

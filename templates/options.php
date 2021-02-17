@@ -4,8 +4,8 @@
  * @var array $options
  * */
 ?>
-<select name="<?= $name ?>" class="">
+<select name="<?php echo $name ?>" class="">
     <?php foreach( $options as $option ) : ?>
-        <option value="<?= $option['value'] ?>"><?= $option['value'] ?></option>
+        <option value="<?php echo $option['value'] ?>"><?php echo $option['value'] ?></option>
     <?php endforeach; ?>
 </select>

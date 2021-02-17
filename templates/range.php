@@ -9,10 +9,10 @@
 ?>
 
 <div class="pcm-range pcm-filter">
-    <label for="<?= $param_from ?>"><strong><?= $label ?></strong> from</label>
-    <input name="<?= $param_from ?>" id="<?= $param_from ?>" type="number" class="" value="<?= $val_from ?>">
-    <label for="<?= $param_to ?>">to</label>
-    <input name="<?= $param_to ?>" id="<?= $param_to ?>" type="number" class="" value="<?= $val_to ?>">
+    <label for="<?php echo $param_from ?>"><strong><?php echo $label ?></strong> from</label>
+    <input name="<?php echo $param_from ?>" id="<?php echo $param_from ?>" type="number" class="" value="<?php echo $val_from ?>">
+    <label for="<?php echo $param_to ?>">to</label>
+    <input name="<?php echo $param_to ?>" id="<?php echo $param_to ?>" type="number" class="" value="<?php echo $val_to ?>">
     <span style="margin-bottom: 50px; float: left;"></span>
 </div>
 
