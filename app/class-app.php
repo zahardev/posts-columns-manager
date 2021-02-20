@@ -7,6 +7,10 @@ use PCM\Managers\Columns_Manager;
 use PCM\Managers\Filters_Manager;
 use PCM\Traits\Singleton as Trait_Singleton;
 
+
+/**
+ * @method $this instance()
+ * */
 class App implements Singleton {
 
     use Trait_Singleton;

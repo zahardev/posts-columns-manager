@@ -2,9 +2,9 @@
 /*
  Plugin Name: Posts Columns Manager
  Author: Sergey Zakharchenko
- Author URI:  https://github.com/zahardoc
+ Author URI:  https://github.com/zahardev
  Version: 1.0
- Description: Manage WordPress admin post table columns. Supports ACF fields. You can: add columns, remove columns, filter by columns.
+ Description: Manage custom columns in the posts editor. You can: add columns, sort and filter posts in the custom columns.
  License:     GPL2
 
 Posts Columns Manager is free software: you can redistribute it and/or modify
