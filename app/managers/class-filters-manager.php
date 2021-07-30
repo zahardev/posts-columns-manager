@@ -9,11 +9,6 @@ use PCM\Settings;
 class Filters_Manager extends Abstract_Manager {
 
     /**
-     * @var
-     */
-    private $fields;
-
-    /**
      * @var Settings $settings
      */
     private $settings;
@@ -78,7 +73,10 @@ class Filters_Manager extends Abstract_Manager {
 
     private function get_fields_meta_queries( $type_group, $meta_query ) {
         foreach ( $type_group as $field_name => $column_settings ) {
-            if ( ! $column_settings['filter'] ) {
+
+            $filter = $this->get_query_val( $field_name );
+
+            if ( empty( $filter ) ) {
                 continue;
             }
 
@@ -89,7 +87,7 @@ class Filters_Manager extends Abstract_Manager {
             }
 
             if ( $query ) {
-                $meta_query = array_merge( $meta_query, $query);
+                $meta_query = array_merge( $meta_query, $query );
             }
         }
 
@@ -124,7 +122,7 @@ class Filters_Manager extends Abstract_Manager {
     }
 
     private function get_text_meta_query( $field_name ) {
-        $val = $this->get_query_val( $field_name );
+        $val        = $this->get_query_val( $field_name );
         $meta_query = [];
 
         if ( $val ) {
@@ -146,12 +144,12 @@ class Filters_Manager extends Abstract_Manager {
 
         foreach ( $columns_settings as $type => $type_group ) {
             foreach ( $type_group as $name => $column_settings ) {
-                if ( ! $column_settings['filter'] ) {
+                if ( empty( $column_settings['filter'] ) ) {
                     continue;
                 }
 
                 if ( 'tax' === $type ) {
-                    $tax = get_taxonomy($name);
+                    $tax = get_taxonomy( $name );
                     wp_dropdown_categories( [
                         'hide_empty'      => true,
                         'show_option_all' => 'All from ' . $tax->label,
@@ -159,7 +157,7 @@ class Filters_Manager extends Abstract_Manager {
                         'hierarchical'    => 1,
                         'name'            => $name,
                         'selected'        => $this->get_query_val( $name ),
-                        'value_field'     => 'slug'
+                        'value_field'     => 'slug',
                     ] );
                     continue;
                 }

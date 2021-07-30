@@ -25,7 +25,7 @@ class Columns_Manager extends Abstract_Manager {
         foreach ( $post_types as $post_type ) {
             $settings =  $this->get_columns_settings( $post_type );
             if( $settings ){
-                add_filter( "manage_{$post_type}_posts_columns", [ $this, 'manage_posts_columns' ], 100 );
+                add_filter( "manage_{$post_type}_posts_columns", [ $this, 'manage_posts_columns' ], 5 );
             }
         }
 
@@ -41,9 +41,7 @@ class Columns_Manager extends Abstract_Manager {
 
         foreach ( $columns_settings as $type => $type_settings ) {
             foreach ( $type_settings as $field_name => $column_settings ) {
-                if ( ! empty( $column_settings['sort'] ) ) {
-                    $columns[ $field_name ] = $field_name;
-                }
+                $columns[ $field_name ] = $field_name;
             }
         }
 
@@ -78,7 +76,7 @@ class Columns_Manager extends Abstract_Manager {
             return;
         }
 
-        foreach ( [ 'fields', 'tax' ] as $type ) {
+        foreach ( [ 'meta_fields', 'fields', 'tax' ] as $type ) {
             if ( ! empty( $columns_settings[ $type ] ) ) {
                 foreach ( $columns_settings[ $type ] as $field_name => $column_settings ) {
                     if ( $column_name != $field_name || ! $column_settings['show_in_column'] ) {

@@ -75,16 +75,18 @@ class Settings {
     public function init_settings() {
         register_setting( self::SETTINGS_URL, self::SETTINGS_URL );
 
+        //Next, add settings for taxonomies
         foreach ( get_post_types() as $post_type ) {
-            $fields = ACF_Helper::get_post_type_fields( $post_type );
-
-            if ( $fields ) {
-                $this->init_fields_settings( $post_type, $fields );
+            //Init ACF Fields settings
+            if (  $fields = ACF_Helper::get_acf_fields( $post_type )  ) {
+                $this->init_acf_fields_settings( $post_type, $fields );
             }
 
-            $taxonomies = $this->get_taxonomies( $post_type );
+            //Init settings for other meta fields
+            $this->init_meta_fields_settings( $post_type );
 
-            if ( $taxonomies ) {
+            //Init taxonomy settings
+            if ( $taxonomies = $this->get_taxonomies( $post_type ) ) {
                 $this->init_tax_settings( $post_type, $taxonomies );
             }
         }
@@ -92,15 +94,36 @@ class Settings {
 
     /**
      * @param string $post_type
+     * @param int $posts_to_check
+     *
+     * @return array
+     */
+    public static function get_post_type_meta_keys( $post_type, $posts_to_check = 20 ) {
+        $meta_keys = array();
+        $posts     = get_posts( array( 'post_type' => $post_type, 'limit' => $posts_to_check ) );
+
+        foreach ( $posts as $post ) {
+            $post_meta_keys = get_post_custom_keys( $post->ID );
+            if ( ! empty( $post_meta_keys ) ) {
+                $meta_keys = array_merge( $meta_keys, $post_meta_keys );
+            }
+        }
+
+        return array_values( array_unique( $meta_keys ) );
+    }
+
+    /**
+     * @param string $post_type
      * @param array $taxonomies
      */
     protected function init_tax_settings( $post_type, $taxonomies ) {
-        $this->add_settings_section( $post_type, 'tax' );
+        $setting_type = 'tax';
+        $this->add_settings_section( $post_type, $setting_type );
         foreach ( $taxonomies as $tax ) {
             foreach ( $this->options_map() as $option_name => $label ) {
                 $option_label = sprintf( $label, $tax->label );
-                $is_supported = Settings_Helper::is_supported( $option_name, 'tax' );
-                $this->add_settings_field( $post_type, 'tax', $tax->name, $option_name, $option_label, $is_supported );
+                $is_supported = Settings_Helper::is_supported( $option_name, $setting_type );
+                $this->add_settings_checkbox( $post_type, 'tax', $tax->name, $option_name, $option_label, $is_supported );
             }
         }
     }
@@ -130,13 +153,34 @@ class Settings {
      * @param string $post_type
      * @param array $fields
      */
-    protected function init_fields_settings( $post_type, $fields ) {
-        $this->add_settings_section( $post_type, 'fields' );
+    protected function init_acf_fields_settings( $post_type, $fields ) {
+        $setting_type = 'fields';
+        $this->add_settings_section( $post_type, $setting_type );
         foreach ( $fields as $k => $field ) {
             foreach ( $this->options_map() as $option_name => $label ) {
                 $option_label = sprintf( $label, $field['label'] );
-                $is_supported = Settings_Helper::is_supported( $option_name, 'fields', $field['type'] );
-                $this->add_settings_field( $post_type, 'fields', $field['name'], $option_name, $option_label, $is_supported );
+                $is_supported = Settings_Helper::is_supported( $option_name, $setting_type, $field['type'] );
+                $this->add_settings_checkbox( $post_type, $setting_type, $field['name'], $option_name, $option_label, $is_supported );
+            }
+        }
+    }
+
+    /**
+     * @param string $post_type
+     */
+    protected function init_meta_fields_settings( $post_type ) {
+        $setting_type = 'meta_fields';
+        $meta_fields  = self::get_post_type_meta_keys( $post_type );
+        if ( empty( $meta_fields ) ) {
+            return;
+        }
+
+        $this->add_settings_section( $post_type, $setting_type );
+
+        foreach ( $meta_fields as $meta_field ) {
+            foreach ( $this->options_map() as $option_name => $label ) {
+                $option_label = sprintf( $label, Settings_Helper::get_meta_field_name( $meta_field ) );
+                $this->add_settings_checkbox( $post_type, $setting_type, $meta_field, $option_name, $option_label, true );
             }
         }
     }
@@ -165,11 +209,12 @@ class Settings {
      */
     protected function get_settings_section_title( $post_label, $type ) {
         $name_map = [
-            'tax'    => 'taxonomies',
-            'fields' => 'meta fields',
+            'tax'         => 'taxonomies',
+            'fields'      => 'acf fields',
+            'meta_fields' => 'meta fields',
         ];
 
-        return __( sprintf( 'Manage %s %s', $post_label, $name_map[ $type ] ), 'wordpress' );
+        return __( sprintf( '%s %s columns', $post_label, $name_map[ $type ] ), 'wordpress' );
     }
 
 
@@ -178,10 +223,10 @@ class Settings {
      */
     public function options_map() {
         return [
-            'show_in_column' => 'Show %s in column',
-            'filter'         => 'Filter by %s',
+            'show_in_column' => '%s',
+           /* 'filter'         => 'Filter by %s',
             'is_numeric'     => 'Is numeric',
-            'sort'           => 'Sort by %s',
+            'sort'           => 'Sort by %s',*/
         ];
     }
 
@@ -193,7 +238,7 @@ class Settings {
      * @param string $option_label
      * @param bool $is_supported
      */
-    public function add_settings_field( $post_type, $type, $field_name, $option_name, $option_label, $is_supported ) {
+    public function add_settings_checkbox( $post_type, $type, $field_name, $option_name, $option_label, $is_supported ) {
         $settings      = $this->get_settings();
         $settings_page = self::SETTINGS_URL;
         add_settings_field(
@@ -260,7 +305,6 @@ class Settings {
      */
     public function get_post_settings( $post_type = null ) {
         $settings = $this->get_settings();
-
 
         if ( empty( $post_type ) ) {
             $current_screen = get_current_screen();

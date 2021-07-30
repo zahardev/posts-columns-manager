@@ -26,16 +26,10 @@ class Settings_Helper {
             ],
         ];
 
-        if ( empty( $supported[ $type ][ $action ] ) ) {
-            return false;
-        }
+        return ! empty( $supported[ $type ][ $action ] );
+    }
 
-        $is_supported = $supported[ $type ][ $action ];
-
-        if ( is_bool( $is_supported ) ) {
-            return $is_supported;
-        }
-
-        return ! empty( $is_supported[ $field_type ] );
+    public static function get_meta_field_name($meta_field){
+        return ucfirst( trim( str_replace( '_', ' ', $meta_field ) ) );
     }
 }

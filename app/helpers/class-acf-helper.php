@@ -6,11 +6,11 @@ class ACF_Helper {
 
     protected static $post_type_fields;
 
-    public static function get_post_type_fields( $post_type = 'post' ) {
+    public static function get_acf_fields( $post_type = 'post' ) {
         if ( ! function_exists( 'acf_get_field_groups' ) ) {
             return [];
         }
-        if ( !isset( self::$post_type_fields[ $post_type ] ) ) {
+        if ( ! isset( self::$post_type_fields[ $post_type ] ) ) {
             $field_groups = acf_get_field_groups( [ 'post_type' => $post_type ] );
             $fields       = [];
             if ( empty( $field_groups ) ) {
@@ -21,7 +21,6 @@ class ACF_Helper {
             }
             self::$post_type_fields[ $post_type ] = $fields;
         }
-
 
         return self::$post_type_fields[ $post_type ];
     }
