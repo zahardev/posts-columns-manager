@@ -2,20 +2,14 @@
 
 namespace PCM;
 
-use PCM\Interfaces\Singleton;
+use PCM\Interfaces\Singleton as Singleton_Interface;
 use PCM\Managers\Columns_Manager;
 use PCM\Managers\Filters_Manager;
-use PCM\Traits\Singleton as Trait_Singleton;
 
 
-/**
- * @method $this instance()
- * */
-class App implements Singleton {
+class App implements Singleton_Interface {
 
-    use Trait_Singleton;
-
-    protected $field_objects;
+    use Traits\Singleton;
 
     public function init() {
         if ( ! is_admin() ) {
