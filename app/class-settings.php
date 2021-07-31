@@ -179,7 +179,8 @@ class Settings {
 
         foreach ( $meta_fields as $meta_field ) {
             foreach ( $this->options_map() as $option_name => $label ) {
-                $option_label = sprintf( $label, Settings_Helper::get_meta_field_name( $meta_field ) );
+                $field_name = sprintf( $label, Settings_Helper::get_meta_field_name( $meta_field ) );
+                $option_label = sprintf('%s (%s)', $field_name, $meta_field);
                 $this->add_settings_checkbox( $post_type, $setting_type, $meta_field, $option_name, $option_label, true );
             }
         }
