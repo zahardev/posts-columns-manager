@@ -1,18 +1,18 @@
 === Plugin Name ===
 Contributors: zahardoc
-Tags: admin, editor, manage, columns,
+Tags: admin, editor, manage, columns, posts overview
 Requires at least: 4.7
-Tested up to: 5.6
-Stable tag: 1.0
+Tested up to: 5.8
+Stable tag: 1.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 == Description ==
 
-This plugin provides possibility to add custom columns in WordPress posts editor.
-It supports ACF fields. You can either add ACF fields columns, or custom taxonomies columns.
-Additionally, there is an option to filter and sort by custom columns (if that's possible).
+Did you ever want to add some custom columns to the posts overview page?
+This plugin gives you the possibility to add meta fields, taxonomies, or ACF fields there.
+Just add any number of columns you want and enjoy seeing them right from the posts overview pages.
 
 == Frequently Asked Questions ==
 
@@ -22,20 +22,15 @@ Yes, this is one of the main plugin features.
 
 = I don't use ACF. Will this plugin work in this case? =
 
-Yes, you can still use it to manage custom taxonomies.
+Yes, you can still use it to manage any meta fields or custom taxonomies.
 
 = Does the plugin supports custom post types? =
 
-Yes, it does.
+Yes, it supports all the available post types and their taxonomies.
 
-= Why is the "Sort by"|"Is numeric" checkbox not active? =
+= I want X feature / something doesn't work =
 
-You can sort and filter only columns for custom fields with type "text" and "number".
-"Is numeric" checkbox is used for switching the sorting type (by alphabet or by number).
-For example, there are 3 field values: 5, 2, 12.
-If the "Numeric" checkbox is not checked, then sorting in ascending order is performed as follows:
-12, 2, 5. If checked, the sorting treats values as numbers - 2, 5, 12.
-
+Just write to me and I'll try to add/fix it in the next plugin version.
 
 == Screenshots ==
 
@@ -44,5 +39,13 @@ If the "Numeric" checkbox is not checked, then sorting in ascending order is per
 
 == Changelog ==
 
+= 1.1 =
+* 2021-07-31
+* UPDATE SUMMARY: Possibility to manage any meta fields
+* [UPDATE] Possibility to manage any meta fields
+* [UPDATE] Made the column sortable feature available by default
+* [UPDATE] Improved settings page
+
 = 1.0 =
-* Plugin release, all the main features are added
+* 2021-02-20
+* Plugin release, possibility to manage ACF fields and taxonomies

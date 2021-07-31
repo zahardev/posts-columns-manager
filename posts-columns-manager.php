@@ -3,7 +3,7 @@
  Plugin Name: Posts Columns Manager
  Author: Sergey Zakharchenko
  Author URI:  https://github.com/zahardev
- Version: 1.0
+ Version: 1.1
  Description: Manage custom columns in the posts editor. You can: add columns, sort and filter posts in the custom columns.
  License:     GPL2
 
@@ -19,7 +19,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with Stripe Payments Custom Fields. If not, see https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
-
 */
 
 if ( ! function_exists( 'add_action' ) ) {
