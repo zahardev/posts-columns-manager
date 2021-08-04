@@ -39,7 +39,7 @@ class Settings {
      * @return array
      */
     public function add_plugin_links( $links ) {
-        $links[] = Renderer::render( 'link', [
+        $links[] = Renderer::fetch( 'link', [
             'href'  => admin_url( 'options-general.php?page=' . self::SETTINGS_URL ),
             'label' => 'Settings',
         ] );
