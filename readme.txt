@@ -3,7 +3,7 @@ Contributors: zahardoc
 Tags: admin, editor, manage, columns, posts overview
 Requires at least: 4.7
 Tested up to: 5.8
-Stable tag: 1.1
+Stable tag: 1.1.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -38,6 +38,11 @@ Just write to me and I'll try to add/fix it in the next plugin version.
 2. Custom columns are added to the posts editor.
 
 == Changelog ==
+
+= 1.1.1 =
+* 2021-08-04
+* UPDATE SUMMARY: UI bug fixed
+* [FIX] Bug fixed: redundant "settings" word on the plugins page
 
 = 1.1 =
 * 2021-07-31
