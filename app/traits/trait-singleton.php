@@ -12,6 +12,9 @@ trait Singleton {
     protected function __construct() {
     }
 
+	/**
+	 * @return parent
+	 * */
     public static function instance() {
         if ( empty( static::$instance ) ) {
             static::$instance = new static;
