@@ -30,7 +30,7 @@ Yes, it supports all the available post types and their taxonomies.
 
 = I want X feature / something doesn't work =
 
-Just write to me and I'll try to add/fix it in the next plugin version.
+Just write to me and I'll try to add/fix it in the next plugin versions.
 
 == Screenshots ==
 

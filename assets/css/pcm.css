@@ -1,0 +1,58 @@
+.pcm-settings table {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    display: none;
+}
+
+.pcm-settings tbody {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.pcm-settings tr {
+    width: 23%;
+    border: 1px solid #ccc;
+    padding-left: 10px;
+}
+
+.pcm-settings h2 {
+    position: relative;
+    background: #0c88b4;
+    color: #fff;
+    padding: 10px 10px 10px 30px;
+    margin: 0 10px 10px 0;
+    cursor: pointer;
+}
+
+.pcm-settings h2::before {
+    content: '';
+    position: absolute;
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 5px solid #fff;
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+    left: 12px;
+    top: 17px;
+}
+
+.pcm-settings h2.collapsed::before {
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid #fff;
+    border-right: 0;
+    top: 14px;
+}
+
+.pcm-settings input[type=submit] {
+    background: #0c88b4;
+    font-size: 16px;
+}
+
+.pcm-filter {
+    display: inline-block;
+    margin: 0 20px 0 5px;
+}
+
+
