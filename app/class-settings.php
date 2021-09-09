@@ -188,14 +188,23 @@ class Settings {
 			return;
 		}
 
-		$this->add_settings_section( $post_type, $setting_type );
+		$section_has_settings = false;
 
 		foreach ( $meta_fields as $meta_field ) {
+			if ( 0 === strpos( $meta_field, '_' ) ) {
+				// Let's skip metas which begin with "_"
+				continue;
+			}
 			foreach ( $this->options_map() as $option_name => $label ) {
-				$field_name   = sprintf( $label, Settings_Helper::get_meta_field_name( $meta_field ) );
-				$option_label = sprintf( '%s (%s)', $field_name, $meta_field );
+				$section_has_settings = true;
+				$field_name           = sprintf( $label, Settings_Helper::get_meta_field_name( $meta_field ) );
+				$option_label         = sprintf( '%s (%s)', $field_name, $meta_field );
 				$this->add_settings_checkbox( $post_type, $setting_type, $meta_field, $option_name, $option_label, true );
 			}
+		}
+
+		if ( $section_has_settings ) {
+			$this->add_settings_section( $post_type, $setting_type );
 		}
 	}
 
