@@ -22,12 +22,16 @@ class Columns_Manager extends Abstract_Manager {
         $screen = get_current_screen();
         $post_types = get_post_types();
 
-        foreach ( $post_types as $post_type ) {
-            $settings =  $this->get_columns_settings( $post_type );
-            if( $settings ){
-                add_filter( "manage_{$post_type}_posts_columns", [ $this, 'manage_posts_columns' ], 5 );
-            }
-        }
+	    foreach ( $post_types as $post_type ) {
+		    $post_type_object = get_post_type_object( $post_type );
+		    if ( empty( $post_type_object->show_in_menu ) ) {
+			    continue;
+		    }
+		    $settings = $this->get_columns_settings( $post_type );
+		    if ( $settings ) {
+			    add_filter( "manage_{$post_type}_posts_columns", [ $this, 'manage_posts_columns' ], 5 );
+		    }
+	    }
 
         add_action( 'manage_posts_custom_column', [ $this, 'echo_column_value' ], 10, 2 );
         add_action( 'manage_pages_custom_column', [ $this, 'echo_column_value' ], 10, 2 );
