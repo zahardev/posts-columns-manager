@@ -85,6 +85,11 @@ class Settings {
 
 		//Next, add settings for taxonomies
 		foreach ( get_post_types() as $post_type ) {
+			$post_type_object = get_post_type_object( $post_type );
+			if ( empty( $post_type_object->show_in_menu ) ) {
+				continue;
+			}
+
 			//Init ACF Fields settings
 			if ( $fields = ACF_Helper::get_acf_fields( $post_type ) ) {
 				$this->init_acf_fields_settings( $post_type, $fields );
