@@ -48,6 +48,7 @@
 .pcm-settings input[type=submit] {
     background: #0c88b4;
     font-size: 16px;
+    font-weight: bold;
 }
 
 .pcm-filter {
