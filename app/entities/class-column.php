@@ -33,5 +33,6 @@ class Column {
     public function __construct( $name = '', $label = '', $data = '' ) {
         $this->name  = $name;
         $this->label = $label;
+		$this->data = $data;
     }
 }

@@ -191,10 +191,6 @@ class Settings {
 		$section_has_settings = false;
 
 		foreach ( $meta_fields as $meta_field ) {
-			if ( 0 === strpos( $meta_field, '_' ) ) {
-				// Let's skip metas which begin with "_"
-				continue;
-			}
 			foreach ( $this->options_map() as $option_name => $label ) {
 				$section_has_settings = true;
 				$field_name           = sprintf( $label, Settings_Helper::get_meta_field_name( $meta_field ) );
