@@ -1,6 +1,6 @@
 <?php
 
-namespace PCM;
+namespace PCM\Controllers;
 
 
 use PCM\Helpers\ACF_Helper;
@@ -12,7 +12,7 @@ use PCM\Traits\Singleton;
  * Class Settings
  * @package PCM
  */
-class Settings {
+class Settings_Controller {
 
 	use Singleton;
 

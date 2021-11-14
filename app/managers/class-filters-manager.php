@@ -3,17 +3,17 @@
 namespace PCM\Managers;
 
 use PCM\Helpers\Renderer;
-use PCM\Settings;
+use PCM\Controllers\Settings_Controller;
 
 
 class Filters_Manager extends Abstract_Manager {
 
 	/**
-	 * @var Settings $settings
+	 * @var Settings_Controller $settings
 	 */
 	private $settings;
 
-	public function init( Settings $settings ) {
+	public function init( Settings_Controller $settings ) {
 		$this->settings = $settings;
 		add_action( 'restrict_manage_posts', [ $this, 'show_filters' ] );
 		add_filter( 'pre_get_posts', [ $this, 'filter_posts' ] );

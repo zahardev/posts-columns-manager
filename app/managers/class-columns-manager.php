@@ -3,17 +3,17 @@
 namespace PCM\Managers;
 
 use PCM\Helpers\ACF_Helper;
-use PCM\Settings;
+use PCM\Controllers\Settings_Controller;
 
 class Columns_Manager extends Abstract_Manager {
 
     /**
-     * @var Settings
+     * @var Settings_Controller
      */
     protected $settings;
 
 
-    public function init( Settings $settings ) {
+    public function init( Settings_Controller $settings ) {
         $this->settings = $settings;
         add_action( 'current_screen', [ $this, 'init_manager' ], 20 );
     }
