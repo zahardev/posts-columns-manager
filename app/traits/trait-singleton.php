@@ -13,7 +13,7 @@ trait Singleton {
     }
 
 	/**
-	 * @return parent
+	 * @return $this
 	 * */
     public static function instance() {
         if ( empty( static::$instance ) ) {

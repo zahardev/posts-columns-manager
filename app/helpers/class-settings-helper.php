@@ -4,7 +4,13 @@ namespace PCM\Helpers;
 
 class Settings_Helper {
 
-    public static function is_supported( $action, $type, $field_type = null ) {
+	/**
+	 * @deprecated
+	 * Todo: remove?
+	 * */
+    public static function is_supported( $action, $source, $field_type = null ) {
+		return true;
+
         $supported = [
             'tax'    => [
                 'show_in_column' => true,
@@ -12,7 +18,7 @@ class Settings_Helper {
                 'is_numeric'     => false,
                 'sort'           => false,
             ],
-            'fields' => [
+            'acf_fields' => [
                 'show_in_column' => true,
                 'filter'         => [
                     'number' => true,
@@ -26,10 +32,10 @@ class Settings_Helper {
             ],
         ];
 
-        return ! empty( $supported[ $type ][ $action ] );
+        return ! empty( $supported[ $source ][ $action ] );
     }
 
-    public static function get_meta_field_name($meta_field){
-        return ucfirst( trim( str_replace( '_', ' ', $meta_field ) ) );
-    }
+	public static function get_meta_field_name( $meta_field ) {
+		return ucfirst( trim( str_replace( '_', ' ', $meta_field ) ) );
+	}
 }

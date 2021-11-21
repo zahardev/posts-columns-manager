@@ -3,20 +3,29 @@
 namespace PCM\Controllers;
 
 
+use PCM\Entities\Settings_Tab;
 use PCM\Helpers\ACF_Helper;
 use PCM\Helpers\Renderer;
 use PCM\Helpers\Settings_Helper;
 use PCM\Traits\Singleton;
 
 /**
- * Class Settings
+ * Class Settings_Controller
  * @package PCM
  */
 class Settings_Controller {
 
 	use Singleton;
 
-	const SETTINGS_URL = 'pcm_manager_settings';
+	const MANAGER_SETTINGS_URL = 'pcm_manager_settings';
+
+	const DEFAULT_TAB = 'add_columns';
+
+	const SOURCE_ACF_FIELDS = 'acf_fields';
+
+	const SOURCE_META_FIELDS = 'meta_fields';
+
+	const SOURCE_TAX = 'tax';
 
 	/**
 	 * @var array $settings
@@ -26,9 +35,8 @@ class Settings_Controller {
 
 	public function init() {
 		add_filter( 'plugin_action_links_' . PCM_PLUGIN_BASENAME, [ $this, 'add_plugin_links' ] );
-		add_action( 'admin_menu', [ $this, 'add_plugin_page' ] );
-		add_action( 'admin_init', [ $this, 'enqueue_assets' ] );
-		add_action( 'admin_init', [ $this, 'init_settings' ] );
+		add_action( 'admin_menu', [ $this, 'add_settings_pages' ] );
+		add_action( 'admin_init', [ $this, 'init_setting_tabs' ] );
 
 		return $this;
 	}
@@ -40,48 +48,71 @@ class Settings_Controller {
 	 */
 	public function add_plugin_links( $links ) {
 		$links[] = Renderer::fetch( 'link', [
-			'href'  => admin_url( 'options-general.php?page=' . self::SETTINGS_URL ),
+			'href'  => admin_url( 'options-general.php?page=' . self::MANAGER_SETTINGS_URL ),
 			'label' => 'Settings',
 		] );
 
 		return $links;
 	}
 
-
-	public function enqueue_assets() {
-		$css_path = '/assets/css/pcm.css';
-		wp_enqueue_style(
-			'pcm-css',
-			PCM_PLUGIN_URL . $css_path,
-			[],
-			PCM_PLUGIN_VERSION
+	public function add_settings_pages() {
+		$pages = array(
+			array(
+				'title'     => __( 'PCM Main Settings', PCM_TEXT_DOMAIN ),
+				'menu_slug' => self::MANAGER_SETTINGS_URL,
+				'page_slug' => self::MANAGER_SETTINGS_URL,
+			),
 		);
 
-		$js_path = '/assets/js/pcm.js';
-		wp_enqueue_script(
-			'pcm-js',
-			PCM_PLUGIN_URL . $js_path,
-			['jquery', 'jquery-ui-accordion'],
-			PCM_PLUGIN_VERSION
+		foreach ( $pages as $page ) {
+			add_submenu_page(
+				'options-general.php',
+				$page['title'],
+				$page['title'],
+				'manage_options',
+				$page['menu_slug'],
+				function () use ( $page ) {
+					$this->render_settings_page( $page['page_slug'] );
+				}
+			);
+		}
+	}
+
+	public function init_setting_tabs() {
+		register_setting( self::MANAGER_SETTINGS_URL, self::MANAGER_SETTINGS_URL );
+		$tab = $this->get_current_tab();
+
+		$tabs = $this->get_tabs();
+
+		if ( isset( $tabs[ $tab ]->callback ) && is_callable( $tabs[ $tab ]->callback ) ) {
+			call_user_func( $tabs[ $tab ]->callback );
+		}
+	}
+
+	protected function init_labels_tab() {
+		$this->add_settings_section( 'pcm_labels', 'Labels section' );
+
+		$settings = $this->get_settings();
+
+		foreach ( $settings['add_columns'] as $post_type => $field_type ) {
+
+		}
+
+		add_settings_field(
+			'test_field',
+			'Option label',
+			function(){
+				echo 'Here';
+			},
+			self::MANAGER_SETTINGS_URL,
+			'pcm_labels',
+			array()
 		);
 	}
 
 
-	public function add_plugin_page() {
-		$title = __( 'PCM Settings', PCM_TEXT_DOMAIN );
-		add_submenu_page(
-			'options-general.php',
-			$title,
-			$title,
-			'manage_options',
-			self::SETTINGS_URL,
-			[ $this, 'render_plugin_page' ]
-		);
-	}
+	public function init_add_columns_tab() {
 
-
-	public function init_settings() {
-		register_setting( self::SETTINGS_URL, self::SETTINGS_URL );
 
 		//Next, add settings for taxonomies
 		foreach ( get_post_types() as $post_type ) {
@@ -130,13 +161,13 @@ class Settings_Controller {
 	 * @param array $taxonomies
 	 */
 	protected function init_tax_settings( $post_type, $taxonomies ) {
-		$setting_type = 'tax';
-		$this->add_settings_section( $post_type, $setting_type );
+		$setting_type = self::SOURCE_TAX;
+		$this->add_post_type_column_settings( $post_type, $setting_type );
 		foreach ( $taxonomies as $tax ) {
 			foreach ( $this->options_map() as $option_name => $label ) {
 				$option_label = sprintf( $label, $tax->label );
 				$is_supported = Settings_Helper::is_supported( $option_name, $setting_type );
-				$this->add_settings_checkbox( $post_type, 'tax', $tax->name, $option_name, $option_label, $is_supported );
+				$this->add_column_settings_checkbox( $post_type, self::SOURCE_TAX, $tax->name, $option_name, $option_label, $is_supported );
 			}
 		}
 	}
@@ -167,13 +198,13 @@ class Settings_Controller {
 	 * @param array $fields
 	 */
 	protected function init_acf_fields_settings( $post_type, $fields ) {
-		$setting_type = 'fields';
-		$this->add_settings_section( $post_type, $setting_type );
+		$source = self::SOURCE_ACF_FIELDS;
+		$this->add_post_type_column_settings( $post_type, $source );
 		foreach ( $fields as $field ) {
 			foreach ( $this->options_map() as $option_name => $label ) {
 				$option_label = sprintf( $label, $field['label'] );
-				$is_supported = Settings_Helper::is_supported( $option_name, $setting_type, $field['type'] );
-				$this->add_settings_checkbox( $post_type, $setting_type, $field['name'], $option_name, $option_label, $is_supported );
+				$is_supported = Settings_Helper::is_supported( $option_name, $source, $field['type'] );
+				$this->add_column_settings_checkbox( $post_type, $source, $field['name'], $option_name, $option_label, $is_supported );
 			}
 		}
 	}
@@ -182,7 +213,7 @@ class Settings_Controller {
 	 * @param string $post_type
 	 */
 	protected function init_meta_fields_settings( $post_type ) {
-		$setting_type = 'meta_fields';
+		$setting_type = self::SOURCE_META_FIELDS;
 		$meta_fields  = self::get_post_type_meta_keys( $post_type );
 		if ( empty( $meta_fields ) ) {
 			return;
@@ -195,45 +226,53 @@ class Settings_Controller {
 				$section_has_settings = true;
 				$field_name           = sprintf( $label, Settings_Helper::get_meta_field_name( $meta_field ) );
 				$option_label         = sprintf( '%s (%s)', $field_name, $meta_field );
-				$this->add_settings_checkbox( $post_type, $setting_type, $meta_field, $option_name, $option_label, true );
+				$this->add_column_settings_checkbox( $post_type, $setting_type, $meta_field, $option_name, $option_label );
 			}
 		}
 
 		if ( $section_has_settings ) {
-			$this->add_settings_section( $post_type, $setting_type );
+			$this->add_post_type_column_settings( $post_type, $setting_type );
 		}
 	}
 
 	/**
 	 * @param string $post_type
-	 * @param string $type
+	 * @param string $source Example: self::SOURCE_ACF_FIELDS
 	 */
-	protected function add_settings_section( $post_type, $type ) {
+	protected function add_post_type_column_settings( $post_type, $source ) {
 		$post_type_object = get_post_type_object( $post_type );
 
-		add_settings_section(
-			$this->get_settings_section_id( $post_type, $type ),
-			$this->get_settings_section_title( $post_type_object->label, $type ),
-			null,
-			self::SETTINGS_URL
-		);
+		$id    = $this->get_settings_section_id( $post_type, $source );
+		$title = $this->get_settings_section_title( $post_type_object->label, $source );
+
+		$this->add_settings_section( $id, $title );
+	}
+
+
+	/**
+	 * @param string $id
+	 * @param string $title
+	 * @param callable|null $callback
+	 */
+	protected function add_settings_section( $id, $title, $callback = null ) {
+		add_settings_section( $id, $title, $callback, self::MANAGER_SETTINGS_URL );
 	}
 
 
 	/**
 	 * @param string $post_label
-	 * @param string $type
+	 * @param string $source
 	 *
 	 * @return string
 	 */
-	protected function get_settings_section_title( $post_label, $type ) {
+	protected function get_settings_section_title( $post_label, $source ) {
 		$name_map = [
-			'tax'         => 'taxonomies',
-			'fields'      => 'ACF fields',
-			'meta_fields' => 'meta fields',
+			self::SOURCE_TAX         => 'taxonomies',
+			self::SOURCE_ACF_FIELDS  => 'ACF fields',
+			self::SOURCE_META_FIELDS => 'meta fields',
 		];
 
-		return __( sprintf( '%s %s', $post_label, $name_map[ $type ] ), 'wordpress' );
+		return __( sprintf( '%s %s', $post_label, $name_map[ $source ] ), 'wordpress' );
 	}
 
 
@@ -251,50 +290,58 @@ class Settings_Controller {
 
 	/**
 	 * @param string $post_type
-	 * @param string $type
+	 * @param string $source
 	 * @param string $field_name
 	 * @param string $option_name
 	 * @param string $option_label
 	 * @param bool $is_supported
 	 */
-	public function add_settings_checkbox( $post_type, $type, $field_name, $option_name, $option_label, $is_supported ) {
+	public function add_column_settings_checkbox( $post_type, $source, $field_name, $option_name, $option_label, $is_supported = true ) {
 		$settings      = $this->get_settings();
-		$settings_page = self::SETTINGS_URL;
+		$tab           = $this->get_current_tab();
 		add_settings_field(
-			sprintf( '%s_%s_%s', $option_name, $type, $field_name ),
+			sprintf( '%s_%s_%s', $option_name, $source, $field_name ),
 			$option_label,
-			[ $this, 'settings_field_callback' ],
-			$settings_page,
-			$this->get_settings_section_id( $post_type, $type ),
-			compact( 'settings', 'settings_page', 'post_type', 'field_name', 'is_supported', 'option_name', 'type' )
+			array( $this, 'render_column_checkbox' ),
+			self::MANAGER_SETTINGS_URL,
+			$this->get_settings_section_id( $post_type, $source ),
+			compact( 'settings', 'tab', 'post_type', 'field_name', 'is_supported', 'option_name', 'source' )
 		);
+	}
+
+	protected function get_current_tab() {
+		$tab = filter_input( INPUT_GET, 'tab' );
+		return $tab ?: self::DEFAULT_TAB;
 	}
 
 	/**
 	 * @param string $post_type
-	 * @param string $type
+	 * @param string $source
 	 *
 	 * @return string
 	 */
-	protected function get_settings_section_id( $post_type, $type ) {
-		return sprintf( 'pcm_post_type_%s_%s', $post_type, $type );
+	protected function get_settings_section_id( $post_type, $source ) {
+		return sprintf( 'pcm_post_type_%s_%s', $post_type, $source );
 	}
 
 	/**
 	 * @param array $args
 	 */
-	public function settings_field_callback( $args ) {
-		$settings      = $args['settings'];
-		$settings_page = $args['settings_page'];
-		$post_type     = $args['post_type'];
-		$field_name    = $args['field_name'];
-		$is_supported  = $args['is_supported'];
-		$option_name   = $args['option_name'];
-		$type          = $args['type'];
+	public function render_column_checkbox( $args ) {
+		$settings     = $args['settings'];
+		$tab          = $args['tab'];
+		$post_type    = $args['post_type'];
+		$field_name   = $args['field_name'];
+		$is_supported = $args['is_supported'];
+		$option_name  = $args['option_name'];
+		$source       = $args['source'];
 
-		$setting_name = sprintf( '%s[%s][%s][%s][%s]', $settings_page, $post_type, $type, $field_name, $option_name );
-		if ( isset( $settings[ $post_type ][ $type ][ $field_name ][ $option_name ] ) ) {
-			$setting_value = $settings[ $post_type ][ $type ][ $field_name ][ $option_name ];
+		$setting_name = sprintf( '%s[%s][%s][%s][%s][%s]', self::MANAGER_SETTINGS_URL, $tab, $post_type, $source, $field_name, $option_name );
+		if ( isset( $settings[ $tab ][ $post_type ][ $source ][ $field_name ][ $option_name ] ) ) {
+			$setting_value = $settings[ $tab ][ $post_type ][ $source ][ $field_name ][ $option_name ];
+		} elseif ( isset( $settings[ $post_type ][ $source ][ $field_name ][ $option_name ] ) ) {
+			// todo: remove it in the future versions, for the old settings structure
+			$setting_value = $settings[ $post_type ][ $source ][ $field_name ][ $option_name ];
 		} else {
 			$setting_value = 0;
 		}
@@ -305,16 +352,44 @@ class Settings_Controller {
 			'is_supported' => $is_supported,
 		] );
 	}
-
 	/**
 	 * @return array|mixed
 	 */
 	public function get_settings() {
 		if ( is_null( $this->settings ) ) {
-			$this->settings = get_option( self::SETTINGS_URL );
+			$settings       = get_option( self::MANAGER_SETTINGS_URL );
+			$this->settings = $this->maybe_migrate_settings_structure( $settings );
 		}
 
 		return $this->settings;
+	}
+
+	/**
+	 * @param $settings
+	 *
+	 * @return mixed
+	 */
+	protected function maybe_migrate_settings_structure( $settings ) {
+		if ( isset( $settings[ self::DEFAULT_TAB ] ) ) {
+			return $settings;
+		}
+
+		// Rename fields to acf_fields.
+		foreach ( $settings as $post_type => $post_type_sources ) {
+			foreach ( $post_type_sources as $source => $source_settings ) {
+				if ( 'fields' === $source ) {
+					$settings[ $post_type ]['acf_fields'] = $source_settings;
+					unset( $settings[ $post_type ]['fields'] );
+				}
+			}
+		}
+
+		// For tabs feature, move all setting into settings[add_columns].
+		$new_settings[ self::DEFAULT_TAB ] = $settings;
+
+		update_option( self::MANAGER_SETTINGS_URL, $new_settings, false );
+
+		return $new_settings;
 	}
 
 	/**
@@ -338,7 +413,41 @@ class Settings_Controller {
 	}
 
 
-	public function render_plugin_page() {
-		Renderer::render( 'settings', [ 'option_group' => self::SETTINGS_URL ] );
+	/**
+	 * @return Settings_Tab[]
+	 */
+	protected function get_tabs() {
+		$tabs = $this->get_tab_settings();
+		$tab_objects = array();
+
+		foreach ( $tabs as $tab ) {
+			$tab_objects[ $tab['id'] ] = new Settings_Tab( $tab );
+		}
+
+		return $tab_objects;
+	}
+
+
+	protected function get_tab_settings() {
+		return array(
+			array(
+				'id'       => 'add_columns',
+				'title'    => 'Add columns',
+				'callback' => array( $this, 'init_add_columns_tab' ),
+			),
+			array(
+				'id'       => 'edit_labels',
+				'title'    => 'Edit column labels',
+				'callback' => array( $this, 'init_labels_tab' ),
+			),
+		);
+	}
+
+
+	public function render_settings_page( $page_slug ) {
+		$tabs        = $this->get_tabs();
+		$current_tab = $this->get_current_tab();
+
+		Renderer::render( 'settings', compact( 'page_slug', 'tabs', 'current_tab' ) );
 	}
 }
