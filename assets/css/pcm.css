@@ -56,4 +56,41 @@
     margin: 0 20px 0 5px;
 }
 
+.pcm-tabs {
+    border-bottom: 1px solid #0c88b4;;
+    margin-right: 10px;
+    padding-left: 5px;
+}
 
+.pcm-tabs .pcm-tab {
+    display: inline-block;
+    color: #0c88b4;
+    vertical-align: top;
+    white-space: nowrap;
+    margin: 0;
+    position: relative;
+    top: 1px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.pcm-tabs .pcm-tab a {
+    text-decoration: none;
+    color: #0c88b4;
+    padding: 7px;
+    border: 1px solid #0c88b4;
+    background: #d7e0e3;
+    border-radius: 3px 3px 0 0;
+    display: inline-block;
+}
+
+.pcm-tabs .pcm-tab a:focus, .pcm-tabs .pcm-tab.active a {
+    box-shadow: 0 -1px 1px 0 #cccdce;
+}
+
+.pcm-tabs .pcm-tab.active a {
+    color: #0c88b4;
+    background: #f0f0f1;
+    border-bottom: #f0f0f1;
+    padding-bottom: 8px;
+}
