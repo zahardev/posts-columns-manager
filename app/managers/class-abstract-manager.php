@@ -10,24 +10,26 @@ abstract class Abstract_Manager {
     /**
      * This function tries to get field from ACF, if cannot - getting it directly from post meta
      *
-     * @param string $type
+     * @param string $source
      * @param string $name
      *
      * @return Column
      */
-    protected function get_column( $type, $name ) {
+    protected function get_column( $source, $name ) {
 
-        switch ($type) {
-            case 'tax':
-                $taxonomy = get_taxonomy( $name );
-                return new Column( $taxonomy->name, $taxonomy->label );
+	    switch ( $source ) {
+		    case 'tax':
+			    $taxonomy = get_taxonomy( $name );
 
-            case 'field':
-                $acf_field = ACF_Helper::acf_get_field( $name );
-                return new Column( $name, $acf_field['label'] );
+			    return new Column( $taxonomy->name, $taxonomy->label, $source );
 
-            default:
-                return new Column( $name, Settings_Helper::get_meta_field_name( $name ) );
-        }
+		    case 'acf_fields':
+			    $acf_field = ACF_Helper::acf_get_field( $name );
+
+			    return new Column( $name, $acf_field['label'], $source );
+
+		    default:
+			    return new Column( $name, Settings_Helper::get_human_readable_field_name( $name ), $source );
+	    }
     }
 }

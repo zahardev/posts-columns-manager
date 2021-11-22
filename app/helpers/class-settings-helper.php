@@ -35,7 +35,7 @@ class Settings_Helper {
         return ! empty( $supported[ $source ][ $action ] );
     }
 
-	public static function get_meta_field_name( $meta_field ) {
-		return ucfirst( trim( str_replace( '_', ' ', $meta_field ) ) );
+	public static function get_human_readable_field_name( $field_name ) {
+		return ucfirst( trim( str_replace( '_', ' ', $field_name ) ) );
 	}
 }

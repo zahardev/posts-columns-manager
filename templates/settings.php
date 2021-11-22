@@ -1,7 +1,7 @@
 <?php
 /**
  * @var Settings_Tab[] $tabs
- * @var string $current_tab
+ * @var Settings_Tab $current_tab
  * @var string $page_slug
  * */
 
@@ -15,13 +15,15 @@ use PCM\Entities\Settings_Tab;
 
         <ul class="pcm-tabs">
 	        <?php foreach ( $tabs as $tab ) : ?>
-                <li class="pcm-tab <?php echo ( $tab->id === $current_tab ) ? 'active' : '' ?>">
+                <li class="pcm-tab <?php echo ( $tab->id === $current_tab->id ) ? 'active' : '' ?>">
                     <a href="<?php echo esc_attr( $tab->get_url() ) ?>"><?php echo $tab->title ?></a>
                 </li>
 	        <?php endforeach; ?>
         </ul>
 
-        <p style="font-size: 16px;">Please choose which columns you want to add. </p>
+        <h3><?php echo $current_tab->title; ?></h3>
+
+        <p style="font-size: 16px;"><?php echo $current_tab->description; ?></p>
 
         <?php
         settings_fields( $page_slug );

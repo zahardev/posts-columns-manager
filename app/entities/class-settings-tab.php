@@ -26,12 +26,18 @@ class Settings_Tab {
 	public $callback;
 
 	/**
+	 * string @var
+	 */
+	public $description;
+
+	/**
 	 * Field constructor.
 	 */
 	public function __construct( $args ) {
-		$this->id    = $args['id'];
-		$this->title = $args['title'];
-		$this->callback  = $args['callback'];
+		$this->id          = $args['id'];
+		$this->title       = $args['title'];
+		$this->callback    = $args['callback'];
+		$this->description = $args['description'];
 	}
 
 	/**

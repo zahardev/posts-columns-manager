@@ -53,17 +53,16 @@ class Columns_Manager extends Abstract_Manager {
     }
 
     public function manage_posts_columns( $defaults ) {
-
         if ( ! $columns_settings = $this->get_columns_settings() ) {
             return $defaults;
         }
 
-        foreach ( $columns_settings as $type => $type_group ) {
+        foreach ( $columns_settings as $source => $type_group ) {
             foreach ( $type_group as $field_name => $column_settings ) {
                 if ( ! $column_settings['show_in_column'] ) {
                     continue;
                 }
-                $column                    = $this->get_column( $type, $field_name );
+                $column                    = $this->get_column( $source, $field_name );
                 $defaults[ $column->name ] = $column->label;
             }
         }
@@ -80,14 +79,20 @@ class Columns_Manager extends Abstract_Manager {
             return;
         }
 
-        foreach ( [ 'meta_fields', 'fields', 'tax' ] as $type ) {
-            if ( ! empty( $columns_settings[ $type ] ) ) {
-                foreach ( $columns_settings[ $type ] as $field_name => $column_settings ) {
+		$sources = array(
+			Settings_Controller::SOURCE_META_FIELDS,
+			Settings_Controller::SOURCE_ACF_FIELDS,
+			Settings_Controller::SOURCE_TAX,
+		);
+
+        foreach ( $sources as $source ) {
+            if ( ! empty( $columns_settings[ $source ] ) ) {
+                foreach ( $columns_settings[ $source ] as $field_name => $column_settings ) {
                     if ( $column_name != $field_name || ! $column_settings['show_in_column'] ) {
                         continue;
                     }
 
-                    echo $this->get_column_value( $type, $field_name );
+                    echo $this->get_column_value( $source, $field_name );
 
                     break;
                 }
@@ -95,19 +100,29 @@ class Columns_Manager extends Abstract_Manager {
         }
     }
 
-    protected function get_column_value( $type, $key ) {
-        if ( 'tax' === $type ) {
-            global $post;
-            $terms = wp_get_post_terms( $post->ID, $key );
 
-            return $this->convert_terms_to_links( $terms );
-        }
+	/**
+	 * @param $type
+	 * @param $key
+	 *
+	 * @return string|null
+	 */
+	protected function get_column_value( $type, $key ) {
+		switch ($type) {
+			case 'tax':
+				global $post;
+				$terms = wp_get_post_terms( $post->ID, $key );
 
-        if ( empty( $val = $this->get_column_val_by_acf( $key ) ) ) {
-            $val = $this->get_column_val_by_meta( $key );
-        }
+				return $this->convert_terms_to_links( $terms );
 
-        return $val;
+			case 'acf_fields':
+				return $this->get_column_val_by_acf( $key );
+
+			case 'meta_fields':
+				return $this->get_column_val_by_meta( $key );
+		}
+
+        return null;
     }
 
     protected function get_column_val_by_acf( $key ) {
