@@ -16,7 +16,7 @@ class Column {
     /**
      * string @var
      */
-    public $label;
+    public $title;
 
 	/**
 	 * string @var
@@ -32,13 +32,13 @@ class Column {
 	 * Field constructor.
 	 *
 	 * @param string $name
-	 * @param string $label
+	 * @param string $title
 	 * @param string $source
 	 * @param string $data
 	 */
-	public function __construct( $name = '', $label = '', $source = '', $data = '' ) {
+	public function __construct( $name = '', $title = '', $source = '', $data = '' ) {
 		$this->name   = $name;
-		$this->label  = $label;
+		$this->title  = $title;
 		$this->source = $source;
 		$this->data   = $data;
 

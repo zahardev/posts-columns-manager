@@ -28,6 +28,7 @@ use PCM\Entities\Settings_Tab;
         <?php
         settings_fields( $page_slug );
         do_settings_sections( $page_slug );
+        do_action( 'pcm_tab_settings', $current_tab );
         submit_button();
         ?>
 

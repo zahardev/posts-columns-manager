@@ -63,7 +63,7 @@ class Columns_Manager extends Abstract_Manager {
                     continue;
                 }
                 $column                    = $this->get_column( $source, $field_name );
-                $defaults[ $column->name ] = $column->label;
+                $defaults[ $column->name ] = $column->title;
             }
         }
 
