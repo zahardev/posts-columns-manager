@@ -40,24 +40,39 @@ class Settings_Controller {
 		add_filter( 'plugin_action_links_' . PCM_PLUGIN_BASENAME, array( $this, 'add_plugin_links' ) );
 		add_action( 'admin_menu', array( $this, 'add_settings_pages' ) );
 		add_action( 'admin_init', array( $this, 'init_setting_tabs' ) );
-		add_filter( 'pcm_column', array( $this, 'change_column_label' ) );
+		add_filter( 'pcm_column', array( $this, 'change_column_title' ) );
+		add_action( 'pcm_tab_settings', array( $this, 'provide_settings_tab' ) );
 
 		return $this;
 	}
 
 	/**
+	 * @param Settings_Tab $tab
+	 */
+	public function provide_settings_tab( $tab ) {
+		$args = array(
+			'id'    => 'pcm_settings_tab',
+			'value' => $tab->id,
+		);
+
+		$this->render_hidden( $args );
+	}
+
+	/**
 	 * @param Column $column
 	 *
-	 * @return mixed
+	 * @return Column
 	 */
-	public function change_column_label( $column ) {
+	public function change_column_title( $column ) {
 		$current_screen = get_current_screen();
-		$post           = $current_screen->post_type;
-		$setting        = $this->get_settings();
+		$post_type      = $current_screen->post_type;
+		$settings       = $this->get_settings( 'edit_titles' );
+
+		if ( ! empty( $settings[ $post_type ][ $column->source ][ $column->name ]['title'] ) ) {
+			$column->title = $settings[ $post_type ][ $column->source ][ $column->name ]['title'];
+		}
 
 		return $column;
-
-		return $column->label = 'Changed label';
 	}
 
 	/**
@@ -84,8 +99,7 @@ class Settings_Controller {
 		);
 
 		foreach ( $pages as $page ) {
-			add_submenu_page(
-				'options-general.php',
+			add_options_page(
 				$page['title'],
 				$page['title'],
 				'manage_options',
@@ -98,52 +112,39 @@ class Settings_Controller {
 	}
 
 	public function init_setting_tabs() {
-		$tabs = $this->get_tabs();
 
-		foreach ( $this->get_tabs() as $tab ) {
-			register_setting( self::MANAGER_SETTINGS_URL, $this->get_option_name( $tab->id ) );
+		if ( ! $this->is_pcm_settings_page() ) {
+			return;
 		}
 
 		$current_tab = $this->get_current_tab();
+
+		$tabs = $this->get_tabs();
+
+		register_setting( self::MANAGER_SETTINGS_URL, $this->get_option_name() );
 
 		if ( isset( $tabs[ $current_tab ]->callback ) && is_callable( $tabs[ $current_tab ]->callback ) ) {
 			call_user_func( $tabs[ $current_tab ]->callback );
 		}
 	}
 
-	protected function init_labels_tab() {
-		$tab = $this->get_current_tab();
-
-		//Next, add settings for taxonomies
-		foreach ( get_post_types() as $post_type ) {
-			$post_type_object = get_post_type_object( $post_type );
-			if ( empty( $post_type_object->show_in_menu ) ) {
-				continue;
-			}
-
-			//Init ACF Fields settings
-			if ( $fields = ACF_Helper::get_acf_fields( $post_type ) ) {
-				$this->init_acf_fields_settings( $post_type, $fields, $tab, 'label' );
-			}
-
-			//Init settings for other meta fields
-			$this->init_meta_fields_settings( $post_type, $tab, 'label' );
-
-			//Init taxonomy settings
-			if ( $taxonomies = $this->get_taxonomies( $post_type ) ) {
-				$this->init_tax_settings( $post_type, $taxonomies, $tab, 'label' );
-			}
+	protected function is_pcm_settings_page() {
+		if ( self::MANAGER_SETTINGS_URL === filter_input( INPUT_GET, 'page' ) ||
+		     self::MANAGER_SETTINGS_URL === filter_input( INPUT_POST, 'option_page' )
+		) {
+			return true;
 		}
+
+		return false;
 	}
 
 
+	/**
+	 * Inits first settings tab.
+	 */
 	public function init_add_columns_tab() {
-
-
-		//Next, add settings for taxonomies
 		foreach ( get_post_types() as $post_type ) {
-			$post_type_object = get_post_type_object( $post_type );
-			if ( empty( $post_type_object->show_in_menu ) ) {
+			if ( ! $this->is_post_type_supported( $post_type ) ) {
 				continue;
 			}
 
@@ -160,6 +161,43 @@ class Settings_Controller {
 				$this->init_tax_settings( $post_type, $taxonomies );
 			}
 		}
+	}
+
+	/**
+	 * Inits second settings tab.
+	 */
+	protected function init_column_titles_tab() {
+		$tab = $this->get_current_tab();
+
+		foreach ( get_post_types() as $post_type ) {
+			if ( ! $this->is_post_type_supported( $post_type ) ) {
+				continue;
+			}
+
+			//Init ACF Fields settings
+			if ( $fields = ACF_Helper::get_acf_fields( $post_type ) ) {
+				$this->init_acf_fields_settings( $post_type, $fields, $tab, 'title' );
+			}
+
+			//Init settings for other meta fields
+			$this->init_meta_fields_settings( $post_type, $tab, 'title' );
+
+			//Init taxonomy settings
+			if ( $taxonomies = $this->get_taxonomies( $post_type ) ) {
+				$this->init_tax_settings( $post_type, $taxonomies, $tab, 'title' );
+			}
+		}
+	}
+
+	/**
+	 * @param string $post_type
+	 *
+	 * @return bool
+	 */
+	protected function is_post_type_supported( $post_type ) {
+		$post_type_object = get_post_type_object( $post_type );
+
+		return ! empty( $post_type_object->show_in_menu );
 	}
 
 	/**
@@ -208,26 +246,25 @@ class Settings_Controller {
 	 * @param array $fields
 	 */
 	protected function init_acf_fields_settings( $post_type, $fields, $tab = 'add_columns', $option_name = 'show_in_column' ) {
-		$source = self::SOURCE_ACF_FIELDS;
+		$source       = self::SOURCE_ACF_FIELDS;
 		$has_settings = false;
-		$options_map = $this->options_map();
-		$settings = $this->get_settings( 'add_columns' );
+		$options_map  = $this->options_map();
+		$settings     = $this->get_settings( 'add_columns' );
 
-		$label = isset( $options_map[ $option_name ] ) ? $options_map[ $option_name ] : Settings_Helper::get_human_readable_field_name( $option_name );
+		$label_tmpl = isset( $options_map[ $option_name ] ) ? $options_map[ $option_name ] : Settings_Helper::get_human_readable_field_name( $option_name );
 
 		foreach ( $fields as $field ) {
-			$option_label = sprintf( $label, $field['label'] );
-			$is_supported = Settings_Helper::is_supported( $option_name, $source, $field['type'] );
+			$option_label = sprintf( $label_tmpl, $field['label'] );
 
 			if ( 'add_columns' === $tab ) {
 				$has_settings = true;
-				$this->add_settings_checkbox( $post_type, $source, $field['name'], $option_name, $option_label, $is_supported );
+				$this->add_dynamic_settings_field( 'checkbox', $post_type, $source, $field['name'], $option_name, $option_label );
 			}
 
-			if ( 'edit_labels' === $tab ) {
-				if ( !empty( $settings[ $post_type ][ $source ][ $field['name'] ]['show_in_column'] ) ) {
+			if ( 'edit_titles' === $tab ) {
+				if ( ! empty( $settings[ $post_type ][ $source ][ $field['name'] ]['show_in_column'] ) ) {
 					$has_settings = true;
-					$this->add_settings_text( $post_type, $source, $field['name'], $option_name, $option_label );
+					$this->add_dynamic_settings_field( 'text', $post_type, $source, $field['name'], $option_name, $option_label );
 				}
 			}
 		}
@@ -241,9 +278,9 @@ class Settings_Controller {
 	/**
 	 * @param string $post_type
 	 */
-	protected function init_meta_fields_settings( $post_type, $tab = 'add_columns', $option_name = 'show_in_column'  ) {
-		$source = self::SOURCE_META_FIELDS;
-		$meta_fields  = self::get_post_type_meta_keys( $post_type );
+	protected function init_meta_fields_settings( $post_type, $tab = 'add_columns', $option_name = 'show_in_column' ) {
+		$source      = self::SOURCE_META_FIELDS;
+		$meta_fields = self::get_post_type_meta_keys( $post_type );
 		if ( empty( $meta_fields ) ) {
 			return;
 		}
@@ -263,13 +300,13 @@ class Settings_Controller {
 
 			if ( 'add_columns' === $tab ) {
 				$has_settings = true;
-				$this->add_settings_checkbox( $post_type, $source, $meta_field, $option_name, $option_label );
+				$this->add_dynamic_settings_field( 'checkbox', $post_type, $source, $meta_field, $option_name, $option_label );
 			}
 
-			if ( 'edit_labels' === $tab ) {
+			if ( 'edit_titles' === $tab ) {
 				if ( ! empty( $settings[ $post_type ][ $source ][ $meta_field ]['show_in_column'] ) ) {
 					$has_settings = true;
-					$this->add_settings_text( $post_type, $source, $meta_field, $option_name, $option_label );
+					$this->add_dynamic_settings_field( 'text', $post_type, $source, $meta_field, $option_name, $option_label );
 				}
 			}
 		}
@@ -295,17 +332,16 @@ class Settings_Controller {
 
 		foreach ( $taxonomies as $tax ) {
 			$option_label = sprintf( $label, $tax->label );
-			$is_supported = Settings_Helper::is_supported( $option_name, $source );
 
 			if ( 'add_columns' === $tab ) {
 				$has_settings = true;
-				$this->add_settings_checkbox( $post_type, self::SOURCE_TAX, $tax->name, $option_name, $option_label, $is_supported );
+				$this->add_dynamic_settings_field( 'checkbox', $post_type, self::SOURCE_TAX, $tax->name, $option_name, $option_label );
 			}
 
-			if ( 'edit_labels' === $tab ) {
+			if ( 'edit_titles' === $tab ) {
 				if ( ! empty( $settings[ $post_type ][ $source ][ $tax->name ]['show_in_column'] ) ) {
 					$has_settings = true;
-					$this->add_settings_text( $post_type, self::SOURCE_TAX, $tax->name, $option_name, $option_label, $is_supported );
+					$this->add_dynamic_settings_field( 'text', $post_type, self::SOURCE_TAX, $tax->name, $option_name, $option_label );
 				}
 			}
 		}
@@ -322,7 +358,7 @@ class Settings_Controller {
 	protected function add_post_type_settings_section( $post_type, $source ) {
 		$post_type_object = get_post_type_object( $post_type );
 
-		$id    = $this->get_settings_section_id( $post_type, $source );
+		$id    = $this->get_dynamic_settings_section_id( $post_type, $source );
 		$title = $this->get_settings_section_title( $post_type_object->label, $source );
 
 		$this->add_settings_section( $id, $title );
@@ -362,7 +398,7 @@ class Settings_Controller {
 	public function options_map() {
 		return [
 			'show_in_column' => '%s',
-			'label' => '%s',
+			'title'          => '%s',
 		];
 	}
 
@@ -370,107 +406,101 @@ class Settings_Controller {
 	 * @param string $post_type
 	 * @param string $source
 	 * @param string $field_name
-	 * @param string $option_name
-	 * @param string $option_label
-	 * @param bool $is_supported
+	 * @param string $action_name
+	 *
+	 * @return mixed|string
 	 */
-	public function add_settings_checkbox( $post_type, $source, $field_name, $option_name, $option_label, $is_supported = true ) {
-		$settings      = $this->get_settings();
-		$tab           = $this->get_current_tab();
-		add_settings_field(
-			sprintf( '%s_%s_%s', $option_name, $source, $field_name ),
-			$option_label,
-			array( $this, 'render_checkbox' ),
-			self::MANAGER_SETTINGS_URL,
-			$this->get_settings_section_id( $post_type, $source ),
-			compact( 'settings', 'tab', 'post_type', 'field_name', 'is_supported', 'option_name', 'source' )
-		);
+	protected function get_dynamic_setting_value( $post_type, $source, $field_name, $action_name  ){
+		$settings     = $this->get_settings();
+		if ( isset( $settings[ $post_type ][ $source ][ $field_name ][ $action_name ] ) ) {
+			$val = $settings[ $post_type ][ $source ][ $field_name ][ $action_name ];
+		} else {
+			$val = '';
+		}
+
+		return $val;
 	}
 
 	/**
-	 * @param string $post_type
-	 * @param string $source
-	 * @param string $field_name
-	 * @param string $option_name
-	 * @param string $option_label
+	 * @param $field_type
+	 * @param $post_type
+	 * @param $source
+	 * @param $field_name
+	 * @param $action_name
+	 * @param $title
 	 */
-	public function add_settings_text( $post_type, $source, $field_name, $option_name, $option_label ) {
-		$settings      = $this->get_settings();
-		$tab           = $this->get_current_tab();
+	protected function add_dynamic_settings_field( $field_type, $post_type, $source, $field_name, $action_name, $title ) {
+		$args = array(
+			'id'    => $this->get_dynamic_field_id( $post_type, $source, $field_name, $action_name ),
+			'title' => $title,
+			'type'  => $field_type,
+		);
+
+		if ( 'text' === $field_type ) {
+			$args['placeholder'] = $title;
+		}
+
+		$section = $this->get_dynamic_settings_section_id( $post_type, $source );
+		$value   = $this->get_dynamic_setting_value( $post_type, $source, $field_name, $action_name );
+
+		$this->add_settings_field( $args, $section, $value );
+	}
+
+	protected function add_settings_field( $args, $section, $value ) {
 		add_settings_field(
-			sprintf( '%s_%s_%s', $option_name, $source, $field_name ),
-			$option_label,
-			array( $this, 'render_text' ),
+			$args['id'],
+			isset( $args['title'] ) ? $args['title'] : '',
+			array( $this, 'render_' . $args['type'] ),
 			self::MANAGER_SETTINGS_URL,
-			$this->get_settings_section_id( $post_type, $source ),
-			compact( 'settings', 'tab', 'post_type', 'field_name', 'option_name', 'source' )
+			$section,
+			array_merge( $args, array( 'value' => $value ) )
 		);
 	}
 
+	protected function get_dynamic_field_id( $post_type, $source, $field_name, $action_name ){
+		return sprintf( '%s[%s][%s][%s][%s]', self::get_option_name(), $post_type, $source, $field_name, $action_name );
+	}
+
 	protected function get_current_tab() {
-		$tab = filter_input( INPUT_GET, 'tab' );
+		$post_tab = filter_input( INPUT_POST, 'pcm_settings_tab' );
+
+		$tab = $post_tab ?: filter_input( INPUT_GET, 'tab' );
+
 		return $tab ?: self::DEFAULT_TAB;
 	}
 
 	/**
 	 * @param string $post_type
-	 * @param string $section
+	 * @param string $source
 	 *
 	 * @return string
 	 */
-	protected function get_settings_section_id( $post_type, $section ) {
-		return sprintf( 'pcm_post_type_%s_%s', $post_type, $section );
+	protected function get_dynamic_settings_section_id( $post_type, $source ) {
+		return sprintf( 'pcm_post_type_%s_%s', $post_type, $source );
+	}
+
+	public function render_hidden( $args ) {
+		Renderer::render( 'settings/hidden', $args );
 	}
 
 	/**
 	 * @param array $args
 	 */
 	public function render_checkbox( $args ) {
-		$settings     = $args['settings'];
-		$tab          = $args['tab'];
-		$post_type    = $args['post_type'];
-		$field_name   = $args['field_name'];
-		$is_supported = $args['is_supported'];
-		$option_name  = $args['option_name'];
-		$source       = $args['source'];
-
-		$setting_name = sprintf( '%s[%s][%s][%s][%s]', self::get_option_name(), $post_type, $source, $field_name, $option_name );
-
-		if ( isset( $settings[ $post_type ][ $source ][ $field_name ][ $option_name ] ) ) {
-			$setting_value = $settings[ $post_type ][ $source ][ $field_name ][ $option_name ];
-		} else {
-			$setting_value = 0;
-		}
-
-		Renderer::render( 'settings/checkbox', [
-			'setting_name' => $setting_name,
-			'is_checked'   => $setting_value,
-			'is_supported' => $is_supported,
-		] );
+		Renderer::render( 'settings/checkbox', $args );
 	}
 
 	/**
 	 * @param array $args
 	 */
 	public function render_text( $args ) {
-		$settings     = $args['settings'];
-		$tab          = $args['tab'];
-		$post_type    = $args['post_type'];
-		$field_name   = $args['field_name'];
-		$option_name  = $args['option_name'];
-		$source       = $args['source'];
+		$defaults = array(
+			'id'          => '',
+			'title'       => '',
+			'placeholder' => '',
+		);
 
-		$setting_name = sprintf( '%s[%s][%s][%s][%s]', self::get_option_name(), $post_type, $source, $field_name, $option_name );
-		if ( isset( $settings[ $post_type ][ $source ][ $field_name ][ $option_name ] ) ) {
-			$setting_value = $settings[ $post_type ][ $source ][ $field_name ][ $option_name ];
-		} else {
-			$setting_value = '';
-		}
-
-		Renderer::render( 'settings/text', [
-			'setting_name' => $setting_name,
-			'value'   => $setting_value,
-		] );
+		Renderer::render( 'settings/text', wp_parse_args( $args, $defaults ) );
 	}
 
 	/**
@@ -518,12 +548,14 @@ class Settings_Controller {
 		}
 
 		update_option( $this->get_option_name( self::DEFAULT_TAB ), $settings, false );
+		delete_option( self::OLD_SETTINGS_NAME );
 
 		return $settings;
 	}
 
 	public function get_option_name( $tab = '' ) {
 		$tab = $tab ?: $this->get_current_tab();
+
 		return self::MANAGER_SETTINGS_URL . '_' . $tab;
 	}
 
@@ -552,7 +584,7 @@ class Settings_Controller {
 	 * @return Settings_Tab[]
 	 */
 	protected function get_tabs() {
-		$tabs = $this->get_tab_settings();
+		$tabs        = $this->get_tab_settings();
 		$tab_objects = array();
 
 		foreach ( $tabs as $tab ) {
@@ -572,10 +604,10 @@ class Settings_Controller {
 				'description' => 'Please choose which columns you want to add.',
 			),
 			array(
-				'id'          => 'edit_labels',
-				'title'       => 'Edit column labels',
-				'callback'    => array( $this, 'init_labels_tab' ),
-				'description' => 'Here you can edit the column labels.',
+				'id'          => 'edit_titles',
+				'title'       => 'Edit column titles',
+				'callback'    => array( $this, 'init_column_titles_tab' ),
+				'description' => 'Here you can edit the column titles.',
 			),
 		);
 	}

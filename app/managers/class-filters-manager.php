@@ -166,13 +166,13 @@ class Filters_Manager extends Abstract_Manager {
 
 				if ( empty( $column_settings['is_numeric'] ) ) {
 					Renderer::render( 'text', [
-						'label' => $column->label,
+						'label' => $column->title,
 						'param' => $column->name,
 						'value' => $this->get_query_val( $column->name ),
 					] );
 				} else {
 					Renderer::render( 'range', [
-						'label'      => $column->label,
+						'label'      => $column->title,
 						'param_from' => $this->get_param_from( $column->name ),
 						'param_to'   => $this->get_param_to( $column->name ),
 						'val_from'   => $this->get_query_val_from( $column->name ),
