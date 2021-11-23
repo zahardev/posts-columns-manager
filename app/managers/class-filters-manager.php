@@ -20,7 +20,7 @@ class Filters_Manager extends Abstract_Manager {
 	}
 
 	public function filter_posts( \WP_Query $wp_query ) {
-		if ( ! $wp_query->is_main_query() || ! $columns_settings = $this->settings->get_post_settings() ) {
+		if ( ! is_admin() || ! $wp_query->is_main_query() || ! $columns_settings = $this->settings->get_post_settings() ) {
 			return $wp_query;
 		}
 

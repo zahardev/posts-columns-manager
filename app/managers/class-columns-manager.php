@@ -19,23 +19,24 @@ class Columns_Manager extends Abstract_Manager {
     }
 
     public function init_manager() {
-        $screen = get_current_screen();
+        $screen     = get_current_screen();
         $post_types = get_post_types();
 
-	    foreach ( $post_types as $post_type ) {
-		    $post_type_object = get_post_type_object( $post_type );
-		    if ( empty( $post_type_object->show_in_menu ) ) {
-			    continue;
-		    }
-		    $settings = $this->get_columns_settings( $post_type );
-		    if ( $settings ) {
-			    add_filter( "manage_{$post_type}_posts_columns", [ $this, 'manage_posts_columns' ], 5 );
-		    }
-	    }
+        foreach ( $post_types as $post_type ) {
+            $post_type_object = get_post_type_object( $post_type );
+            if ( empty( $post_type_object->show_in_menu ) ) {
+                continue;
+            }
+            $settings = $this->get_columns_settings( $post_type );
+            if ( $settings ) {
+                add_filter( "manage_{$post_type}_posts_columns", [ $this, 'manage_posts_columns' ], 5 );
+            }
+        }
 
-        add_action( 'manage_posts_custom_column', [ $this, 'echo_column_value' ], 10, 2 );
-        add_action( 'manage_pages_custom_column', [ $this, 'echo_column_value' ], 10, 2 );
-        add_filter( 'manage_' . $screen->id . '_sortable_columns', [ $this, 'sortable_columns' ], 10, 2 );
+        add_action( 'manage_posts_custom_column', array( $this, 'echo_column_value' ), 10, 2 );
+        add_action( 'manage_pages_custom_column', array( $this, 'echo_column_value' ), 10, 2 );
+        add_filter( 'manage_' . $screen->id . '_sortable_columns', array( $this, 'sortable_columns' ), 10, 2 );
+        add_action( 'pre_get_posts', array( $this, 'maybe_sort_column' ) );
     }
 
     public function sortable_columns( $columns ) {
@@ -43,13 +44,46 @@ class Columns_Manager extends Abstract_Manager {
             return $columns;
         }
 
-        foreach ( $columns_settings as $type => $type_settings ) {
-            foreach ( $type_settings as $field_name => $column_settings ) {
+        foreach ( $columns_settings as $source => $fields ) {
+            // Since column can have multiple values lets just not allow sorting here.
+            if ( Settings_Controller::SOURCE_TAX === $source ) {
+                continue;
+            }
+            foreach ( $fields as $field_name => $actions ) {
                 $columns[ $field_name ] = $field_name;
             }
         }
 
         return $columns;
+    }
+
+    /**
+     * @param \WP_Query $wp_query
+     */
+    public function maybe_sort_column( $wp_query ) {
+        if ( ! is_admin() || ! $wp_query->is_main_query() ) {
+            return;
+        }
+
+        if ( ! $columns_settings = $this->get_columns_settings() ) {
+            return;
+        }
+
+        $order_by = $wp_query->get( 'orderby' );
+
+        foreach ( $columns_settings as $source => $fields ) {
+            foreach ( $fields as $field_name => $actions ) {
+                switch ( $source ) {
+                    case Settings_Controller::SOURCE_META_FIELDS:
+                    case Settings_Controller::SOURCE_ACF_FIELDS:
+                        if ( $field_name === $order_by ) {
+                            $wp_query->set( 'meta_key', $order_by );
+                            $order_field = is_numeric( $order_by ) ? 'meta_value_num' : 'meta_value';
+                            $wp_query->set( 'orderby', $order_field );
+                        }
+                }
+            }
+        }
     }
 
     public function manage_posts_columns( $defaults ) {
@@ -72,18 +106,17 @@ class Columns_Manager extends Abstract_Manager {
     }
 
 
-
     public function echo_column_value( $column_name ) {
 
         if ( ! $columns_settings = $this->get_columns_settings() ) {
             return;
         }
 
-		$sources = array(
-			Settings_Controller::SOURCE_META_FIELDS,
-			Settings_Controller::SOURCE_ACF_FIELDS,
-			Settings_Controller::SOURCE_TAX,
-		);
+        $sources = array(
+            Settings_Controller::SOURCE_META_FIELDS,
+            Settings_Controller::SOURCE_ACF_FIELDS,
+            Settings_Controller::SOURCE_TAX,
+        );
 
         foreach ( $sources as $source ) {
             if ( ! empty( $columns_settings[ $source ] ) ) {
@@ -101,26 +134,26 @@ class Columns_Manager extends Abstract_Manager {
     }
 
 
-	/**
-	 * @param $type
-	 * @param $key
-	 *
-	 * @return string|null
-	 */
-	protected function get_column_value( $type, $key ) {
-		switch ($type) {
-			case 'tax':
-				global $post;
-				$terms = wp_get_post_terms( $post->ID, $key );
+    /**
+     * @param $type
+     * @param $key
+     *
+     * @return string|null
+     */
+    protected function get_column_value( $type, $key ) {
+        switch ( $type ) {
+            case 'tax':
+                global $post;
+                $terms = wp_get_post_terms( $post->ID, $key );
 
-				return $this->convert_terms_to_links( $terms );
+                return $this->convert_terms_to_links( $terms );
 
-			case 'acf_fields':
-				return $this->get_column_val_by_acf( $key );
+            case 'acf_fields':
+                return $this->get_column_val_by_acf( $key );
 
-			case 'meta_fields':
-				return $this->get_column_val_by_meta( $key );
-		}
+            case 'meta_fields':
+                return $this->get_column_val_by_meta( $key );
+        }
 
         return null;
     }
