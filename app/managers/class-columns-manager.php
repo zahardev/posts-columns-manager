@@ -50,7 +50,7 @@ class Columns_Manager extends Abstract_Manager {
                 continue;
             }
             foreach ( $fields as $field_name => $actions ) {
-                $columns[ $field_name ] = $field_name;
+                $columns[ $this->get_column_name( $source, $field_name ) ] = $field_name;
             }
         }
 
@@ -86,18 +86,25 @@ class Columns_Manager extends Abstract_Manager {
         }
     }
 
+    /**
+     * Change columns array here.
+     *
+     * @param $defaults
+     *
+     * @return mixed
+     */
     public function manage_posts_columns( $defaults ) {
         if ( ! $columns_settings = $this->get_columns_settings() ) {
             return $defaults;
         }
 
-        foreach ( $columns_settings as $source => $type_group ) {
-            foreach ( $type_group as $field_name => $column_settings ) {
-                if ( ! $column_settings['show_in_column'] ) {
+        foreach ( $columns_settings as $source => $fields ) {
+            foreach ( $fields as $field_name => $actions ) {
+                if ( empty( $actions['show_in_column'] ) ) {
                     continue;
                 }
                 $column                    = $this->get_column( $source, $field_name );
-                $defaults[ $column->name ] = $column->title;
+                $defaults[ $this->get_column_name( $source, $column->name ) ] = $column->title;
             }
         }
 
@@ -105,31 +112,29 @@ class Columns_Manager extends Abstract_Manager {
         return $defaults;
     }
 
+    protected function get_column_name( $source, $column_name ) {
+        return $source . '__pcm__' . $column_name;
+    }
+
 
     public function echo_column_value( $column_name ) {
+
+        // Unfortunately, it's not possible to provide data array directly, so have to use some workarounds.
+        $column_data = explode( '__pcm__', $column_name );
+
+        if ( ! is_array( $column_data ) || 2 !== count( $column_data ) ) {
+            return;
+        }
 
         if ( ! $columns_settings = $this->get_columns_settings() ) {
             return;
         }
 
-        $sources = array(
-            Settings_Controller::SOURCE_META_FIELDS,
-            Settings_Controller::SOURCE_ACF_FIELDS,
-            Settings_Controller::SOURCE_TAX,
-        );
+        $source      = $column_data[0];
+        $field_name = $column_data[1];
 
-        foreach ( $sources as $source ) {
-            if ( ! empty( $columns_settings[ $source ] ) ) {
-                foreach ( $columns_settings[ $source ] as $field_name => $column_settings ) {
-                    if ( $column_name != $field_name || ! $column_settings['show_in_column'] ) {
-                        continue;
-                    }
-
-                    echo $this->get_column_value( $source, $field_name );
-
-                    break;
-                }
-            }
+        if ( ! empty( $columns_settings[ $source ][ $field_name ] ) ) {
+            echo $this->get_column_value( $source, $field_name );
         }
     }
 
