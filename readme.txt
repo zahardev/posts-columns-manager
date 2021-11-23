@@ -3,7 +3,7 @@ Contributors: zahardoc
 Tags: admin, editor, manage, columns, posts overview
 Requires at least: 4.7
 Tested up to: 5.8
-Stable tag: 1.2.1
+Stable tag: 1.3.0
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -34,10 +34,20 @@ Just write to me and I'll try to add/fix it in the next plugin versions.
 
 == Screenshots ==
 
-1. Plugin settings - check which columns do you want to add in the editor and additional settings for them.
-2. Custom columns are added to the posts editor.
+1. Check which columns you want to add.
+2. You can also adjust the column titles.
+3. Custom columns now added to the posts editor.
+4. You can easily sort posts by column values.
 
 == Changelog ==
+
+= 1.3.0 =
+* 2021-11-23
+* UPDATE SUMMARY: Possibility to edit column titles, sorting fix
+* [UPDATE] Possibility to edit column titles
+* [UPDATE] Implemented setting tabs
+* [UPDATE] Code refactoring
+* [FIX] Fixed sorting by column values
 
 = 1.2.1 =
 * 2021-09-13
@@ -47,9 +57,9 @@ Just write to me and I'll try to add/fix it in the next plugin versions.
 = 1.2.0 =
 * 2021-09-09
 * UPDATE SUMMARY: Settings UI improvements
-* [Update] Settings: accordion for each post type
-* [Update] Settings: hide redundant metas
-* [Update] Settings: hide redundant post types
+* [UPDATE] Settings: accordion for each post type
+* [UPDATE] Settings: hide redundant metas
+* [UPDATE] Settings: hide redundant post types
 
 = 1.1.1 =
 * 2021-08-04
