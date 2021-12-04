@@ -59,4 +59,40 @@ class ACF_Helper {
 
         return get_field_object( $field_key, $post_id, $options );
     }
+
+    /**
+     * @param \WP_Post[]|int[] $field_data
+     */
+    public static function get_column_value_relationship( $field_data ) {
+        $links = array();
+        foreach ( $field_data as $post ) {
+            if ( ! is_object( $post ) ) {
+                $post = get_post( $post );
+            }
+            $links[] = sprintf( '<a href="%s">%s</a>', get_edit_post_link( $post ), $post->post_title );
+        }
+
+        return implode( ', ', $links );
+    }
+
+    /**
+     * @param array|string $field_data
+     */
+    public static function get_column_value_image( $field_data ) {
+        $arg_type = gettype($field_data);
+
+        switch($arg_type){
+            case 'array':
+                $url = $field_data['url'];
+                break;
+            case 'integer':
+                $url = wp_get_attachment_url($field_data);
+                break;
+            default:
+                $url = $field_data;
+        }
+
+        return sprintf( '<img src="%s" style="width: 90px">', $url );
+    }
+
 }
