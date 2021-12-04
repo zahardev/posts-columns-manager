@@ -15,7 +15,7 @@ class Columns_Manager extends Abstract_Manager {
 
     public function init( Settings_Controller $settings ) {
         $this->settings = $settings;
-        add_action( 'current_screen', [ $this, 'init_manager' ], 20 );
+        add_action( 'current_screen', array( $this, 'init_manager' ), 20 );
     }
 
     public function init_manager() {
@@ -103,7 +103,7 @@ class Columns_Manager extends Abstract_Manager {
                 if ( empty( $actions['show_in_column'] ) ) {
                     continue;
                 }
-                $column                    = $this->get_column( $source, $field_name );
+                $column                                                       = $this->get_column( $source, $field_name );
                 $defaults[ $this->get_column_name( $source, $column->name ) ] = $column->title;
             }
         }
@@ -130,7 +130,7 @@ class Columns_Manager extends Abstract_Manager {
             return;
         }
 
-        $source      = $column_data[0];
+        $source     = $column_data[0];
         $field_name = $column_data[1];
 
         if ( ! empty( $columns_settings[ $source ][ $field_name ] ) ) {
@@ -166,22 +166,28 @@ class Columns_Manager extends Abstract_Manager {
     protected function get_column_val_by_acf( $key ) {
         $fields = ACF_Helper::get_fields();
 
-        if ( empty( $fields ) ) {
+        if ( ! isset( $fields[ $key ] ) ) {
             return '';
         }
 
-        foreach ( $fields as $field => $val ) {
-            if ( $key === $field ) {
-                if ( is_scalar( $val ) ) {
-                    return $val;
-                } elseif ( is_array( $val ) && 'image' == $val['type'] ) {
-                    return sprintf( '<img src="%s" style="width: 50px">', $val['url'] );
-                }
-                break;
-            }
-        }
+        $field = $fields[ $key ];
 
-        return '';
+        $type = $this->get_acf_type_by_field_name( $key );
+        switch ( $type ) {
+            case 'relationship':
+                return ACF_Helper::get_column_value_relationship( $field );
+            case 'image':
+                return ACF_Helper::get_column_value_image( $field );
+
+            default:
+                return is_scalar( $field ) ? $field : '';
+        }
+    }
+
+    protected function get_acf_type_by_field_name( $name ) {
+        $field = acf_maybe_get_field( $name );
+
+        return isset( $field['type'] ) ? $field['type'] : null;
     }
 
     protected function get_column_val_by_meta( $key ) {
