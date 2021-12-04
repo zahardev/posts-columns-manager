@@ -64,6 +64,9 @@ class ACF_Helper {
      * @param \WP_Post[]|int[] $field_data
      */
     public static function get_column_value_relationship( $field_data ) {
+        if ( ! is_array( $field_data ) ) {
+            return '';
+        }
         $links = array();
         foreach ( $field_data as $post ) {
             if ( ! is_object( $post ) ) {
