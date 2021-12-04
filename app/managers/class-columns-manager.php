@@ -12,6 +12,14 @@ class Columns_Manager extends Abstract_Manager {
      */
     protected $settings;
 
+    /**
+     * @var array $column_values Save current screen column values to understand if it's numeric or not.
+     * */
+    protected $column_values;
+
+
+    const COLUMN_VALUES_TRANSIENT = 'pcm_last_column_values';
+
 
     public function init( Settings_Controller $settings ) {
         $this->settings = $settings;
@@ -77,8 +85,23 @@ class Columns_Manager extends Abstract_Manager {
                     case Settings_Controller::SOURCE_META_FIELDS:
                     case Settings_Controller::SOURCE_ACF_FIELDS:
                         if ( $field_name === $order_by ) {
+                            $column_values = $this->get_last_column_values( get_query_var( 'post_type' ), $source, $field_name );
+                            $is_numeric    = true;
+
+                            // Let's find out if the value is numeric or not.
+                            if ( empty( $column_values ) ) {
+                                $is_numeric = false;
+                            } else {
+                                foreach ( $column_values as $column_value ) {
+                                    if ( ! is_numeric( $column_value ) ) {
+                                        $is_numeric = false;
+                                        break;
+                                    }
+                                }
+                            }
+
                             $wp_query->set( 'meta_key', $order_by );
-                            $order_field = is_numeric( $order_by ) ? 'meta_value_num' : 'meta_value';
+                            $order_field = $is_numeric ? 'meta_value_num' : 'meta_value';
                             $wp_query->set( 'orderby', $order_field );
                         }
                 }
@@ -132,10 +155,48 @@ class Columns_Manager extends Abstract_Manager {
 
         $source     = $column_data[0];
         $field_name = $column_data[1];
-
         if ( ! empty( $columns_settings[ $source ][ $field_name ] ) ) {
-            echo $this->get_column_value( $source, $field_name );
+            $value = $this->get_column_value( $source, $field_name );
+            $this->update_column_values( $source, $field_name, $value );
+            echo $value;
         }
+    }
+
+    protected function update_column_values( $source, $field_name, $value ) {
+        global $posts, $post;
+        $this->column_values[ $source ][ $field_name ][] = $value;
+
+        $last_post = end( $posts );
+
+        // If all column values obtained save it to transient for the next query
+        if ( $this->column_values && $post->ID === $last_post->ID ) {
+            $this->save_last_column_values( $post->post_type, $this->column_values );
+        }
+    }
+
+    /**
+     * @param array $column_values
+     */
+    public function save_last_column_values( $post_type, $column_values ) {
+        set_transient( self::COLUMN_VALUES_TRANSIENT . '_' . $post_type, $column_values );
+    }
+
+    /**
+     * @param string $post_type
+     *
+     * @return array
+     */
+    public function get_last_column_values( $post_type, $source, $field_name ) {
+        $val = get_transient( self::COLUMN_VALUES_TRANSIENT . '_' . $post_type );
+
+        return ( isset( $val[ $source ][ $field_name ] ) ) ? $val[ $source ][ $field_name ] : null;
+    }
+
+    /**
+     * Workaround to get column values before query and understand if it's numeric or not
+     * */
+    protected function save_page_column_values() {
+
     }
 
 
