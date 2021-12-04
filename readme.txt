@@ -3,7 +3,7 @@ Contributors: zahardoc
 Tags: admin, editor, manage, columns, posts overview
 Requires at least: 4.7
 Tested up to: 5.8
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -30,7 +30,7 @@ Yes, it supports all the available post types and their taxonomies.
 
 = I want X feature / something doesn't work =
 
-Just write to me and I'll try to add/fix it in the next plugin versions.
+Just write about it in the plugin support forum, and we'll try to add/fix it in the next plugin versions.
 
 == Screenshots ==
 
@@ -40,6 +40,13 @@ Just write to me and I'll try to add/fix it in the next plugin versions.
 4. You can easily sort posts by column values.
 
 == Changelog ==
+
+= 1.4.0 =
+* 2021-11-23
+* UPDATE SUMMARY: Column fields improvements
+* [UPDATE] Added support for ACF relationship fields
+* [UPDATE] Added support for ACF image fields
+* [UPDATE] Added possibility to sort numeric fields
 
 = 1.3.0 =
 * 2021-11-23

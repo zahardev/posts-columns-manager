@@ -3,7 +3,7 @@
  Plugin Name: Posts Columns Manager
  Author: Sergey Zakharchenko
  Author URI:  https://github.com/zahardev
- Version: 1.3.0
+ Version: 1.4.0
  Description: Manage custom columns in the posts editor. You can: add columns, sort and filter posts in the custom columns.
  License:     GPL2
 
@@ -29,7 +29,7 @@ define( 'PCM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PCM_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'PCM_PLUGIN_URL', plugins_url( '', __FILE__ ) );
 define( 'PCM_TEXT_DOMAIN', 'PCM' );
-define( 'PCM_PLUGIN_VERSION', '1.3.0' );
+define( 'PCM_PLUGIN_VERSION', '1.4.0' );
 
 require_once 'wp-autoloader.php';
 
