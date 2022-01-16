@@ -6,19 +6,7 @@
  Version: 1.4.0
  Description: Manage custom columns in the posts editor. You can: add columns, sort and filter posts in the custom columns.
  License:     GPL2
-
-Posts Columns Manager is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-any later version.
-
-Posts Columns Manager is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Stripe Payments Custom Fields. If not, see https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html.
+ Text Domain: posts-columns-manager
 */
 
 if ( ! function_exists( 'add_action' ) ) {
@@ -28,7 +16,7 @@ if ( ! function_exists( 'add_action' ) ) {
 define( 'PCM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PCM_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'PCM_PLUGIN_URL', plugins_url( '', __FILE__ ) );
-define( 'PCM_TEXT_DOMAIN', 'PCM' );
+define( 'PCM_TEXT_DOMAIN', 'posts-columns-manager' );
 define( 'PCM_PLUGIN_VERSION', '1.4.0' );
 
 require_once 'wp-autoloader.php';
