@@ -157,6 +157,7 @@ class Columns_Manager extends Abstract_Manager {
         $field_name = $column_data[1];
         if ( ! empty( $columns_settings[ $source ][ $field_name ] ) ) {
             $value = $this->get_column_value( $source, $field_name );
+            $value = apply_filters( 'pcm_column_value', $value, $source, $field_name );
             $this->update_column_values( $source, $field_name, $value );
             echo $value;
         }
@@ -239,6 +240,8 @@ class Columns_Manager extends Abstract_Manager {
                 return ACF_Helper::get_column_value_relationship( $field );
             case 'image':
                 return ACF_Helper::get_column_value_image( $field );
+            case 'checkbox':
+                return ACF_Helper::get_column_value_checkbox( $key );
 
             default:
                 return is_scalar( $field ) ? $field : '';

@@ -26,7 +26,7 @@ class ACF_Helper {
     }
 
 
-    public static function acf_get_field( $field ){
+    public static function acf_get_field( $field ) {
         if ( ! function_exists( 'acf_get_field_groups' ) ) {
             return null;
         }
@@ -82,20 +82,42 @@ class ACF_Helper {
      * @param array|string $field_data
      */
     public static function get_column_value_image( $field_data ) {
-        $arg_type = gettype($field_data);
+        $arg_type = gettype( $field_data );
 
-        switch($arg_type){
+        switch ( $arg_type ) {
             case 'array':
                 $url = $field_data['url'];
                 break;
             case 'integer':
-                $url = wp_get_attachment_url($field_data);
+                $url = wp_get_attachment_url( $field_data );
                 break;
             default:
                 $url = $field_data;
         }
 
         return sprintf( '<img src="%s" style="width: 90px">', $url );
+    }
+
+
+    /**
+     * @param array|string $field_data
+     */
+    public static function get_column_value_checkbox( $field_name ) {
+        $field = self::acf_get_field( $field_name );
+
+        $settings = self::get_field( $field_name );
+
+        if ( empty( $field['choices'] ) ) {
+            return '';
+        }
+
+        foreach ( $field['choices'] as $k => $choice ) {
+            $value = in_array( $k, $settings ) ? __( 'Yes', PCM_TEXT_DOMAIN ) : __( 'No', PCM_TEXT_DOMAIN );
+
+            $values[] = count( $field['choices'] ) > 1 ? sprintf( '%s: %s', $choice, $value ) : $value;
+        }
+
+        return implode( '<br>', $values );
     }
 
 }
