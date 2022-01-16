@@ -3,7 +3,7 @@ Contributors: zahardoc
 Tags: admin, editor, manage, columns, posts overview
 Requires at least: 4.7
 Tested up to: 5.8
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -40,6 +40,12 @@ Just write about it in the plugin support forum, and we'll try to add/fix it in 
 4. You can easily sort posts by column values.
 
 == Changelog ==
+
+= 1.5.0 =
+* 2022-01-16
+* UPDATE SUMMARY: Support ACF checkbox field
+* [UPDATE] Added support for ACF checkbox fields
+* [UPDATE] Improved codebase for plugin translation
 
 = 1.4.0 =
 * 2021-11-23
