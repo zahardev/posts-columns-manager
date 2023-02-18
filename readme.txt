@@ -2,8 +2,8 @@
 Contributors: zahardoc
 Tags: admin, editor, manage, columns, posts overview
 Requires at least: 4.7
-Tested up to: 5.8
-Stable tag: 1.5.0
+Tested up to: 6.1
+Stable tag: 1.6.0
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -40,6 +40,12 @@ Just write about it in the plugin support forum, and we'll try to add/fix it in 
 4. You can easily sort posts by column values.
 
 == Changelog ==
+
+= 1.6.0 =
+* 2023-02-18
+* UPDATE SUMMARY: Fixed columns not showing in WC Orders issue
+* [FIX] Fixed columns not showing in WC Orders issue
+* [UPDATE] Updated supported WP version
 
 = 1.5.0 =
 * 2022-01-16
