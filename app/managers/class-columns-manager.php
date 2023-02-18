@@ -37,7 +37,10 @@ class Columns_Manager extends Abstract_Manager {
             }
             $settings = $this->get_columns_settings( $post_type );
             if ( $settings ) {
-                add_filter( "manage_{$post_type}_posts_columns", [ $this, 'manage_posts_columns' ], 5 );
+                // Used 12 to make sure that we add our columns and no one will override it.
+                // For example, WC redefines columns completely on 10th priority.
+                // Todo: redefine all the columns on 99 priority
+                add_filter( "manage_{$post_type}_posts_columns", array( $this, 'manage_posts_columns' ), 12 );
             }
         }
 
