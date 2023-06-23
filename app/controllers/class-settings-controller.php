@@ -30,6 +30,9 @@ class Settings_Controller {
 
 	const SOURCE_TAX = 'tax';
 
+    // This is for the native fields that are stored in the wp_posts table
+    const SOURCE_POST_PROPERTIES = 'post_properties';
+
 	/**
 	 * @var array $settings
 	 */
@@ -92,7 +95,7 @@ class Settings_Controller {
 	public function add_settings_pages() {
 		$pages = array(
 			array(
-				'title'     => __( 'PCM Settings', PCM_TEXT_DOMAIN ),
+				'title'     => __( 'PCM Settings', 'posts-columns-manager' ),
 				'menu_slug' => self::MANAGER_SETTINGS_URL,
 				'page_slug' => self::MANAGER_SETTINGS_URL,
 			),
@@ -153,6 +156,9 @@ class Settings_Controller {
 				$this->init_acf_fields_settings( $post_type, $fields );
 			}
 
+            //Init settings for the post properties ( stored in the wp_posts table )
+            $this->init_post_properties_settings( $post_type );
+
 			//Init settings for other meta fields
 			$this->init_meta_fields_settings( $post_type );
 
@@ -179,7 +185,10 @@ class Settings_Controller {
 				$this->init_acf_fields_settings( $post_type, $fields, $tab, 'title' );
 			}
 
-			//Init settings for other meta fields
+            //Init title settings for the post properties
+            $this->init_post_properties_settings( $post_type, $tab, 'title' );
+
+            //Init settings for other meta fields
 			$this->init_meta_fields_settings( $post_type, $tab, 'title' );
 
 			//Init taxonomy settings
@@ -241,10 +250,12 @@ class Settings_Controller {
 		return $taxonomies;
 	}
 
-	/**
-	 * @param string $post_type
-	 * @param array $fields
-	 */
+    /**
+     * @param string $post_type
+     * @param array $fields
+     * @param string $tab
+     * @param string $option_name
+     */
 	protected function init_acf_fields_settings( $post_type, $fields, $tab = 'add_columns', $option_name = 'show_in_column' ) {
 		$source       = self::SOURCE_ACF_FIELDS;
 		$has_settings = false;
@@ -273,6 +284,55 @@ class Settings_Controller {
 			$this->add_post_type_settings_section( $post_type, $source );
 		}
 	}
+
+    /**
+     * @param string $post_type
+     */
+    protected function init_post_properties_settings( $post_type, $tab = 'add_columns', $option_name = 'show_in_column' ) {
+        $source      = self::SOURCE_POST_PROPERTIES;
+        $properties = array(
+            'ID',
+            'post_author',
+            'post_date',
+            'post_date_gmt',
+            'post_title',
+            'post_status',
+            'post_modified',
+            'post_modified_gmt',
+            'menu_order',
+            'comment_count',
+        );
+
+        $settings = $this->get_settings( 'add_columns' );
+
+        $has_settings = false;
+
+        $options_map = $this->options_map();
+
+        $label = isset( $options_map[ $option_name ] ) ? $options_map[ $option_name ] : Settings_Helper::get_human_readable_field_name( $option_name );
+
+        foreach ( $properties as $property ) {
+
+            $field_name   = sprintf( $label, Settings_Helper::get_human_readable_field_name( $property ) );
+            $option_label = sprintf( '%s (%s)', $field_name, $property );
+
+            if ( 'add_columns' === $tab ) {
+                $has_settings = true;
+                $this->add_dynamic_settings_field( 'checkbox', $post_type, $source, $property, $option_name, $option_label );
+            }
+
+            if ( 'edit_titles' === $tab ) {
+                if ( ! empty( $settings[ $post_type ][ $source ][ $property ]['show_in_column'] ) ) {
+                    $has_settings = true;
+                    $this->add_dynamic_settings_field( 'text', $post_type, $source, $property, $option_name, $option_label );
+                }
+            }
+        }
+
+        if ( $has_settings ) {
+            $this->add_post_type_settings_section( $post_type, $source );
+        }
+    }
 
 
 	/**
@@ -381,15 +441,16 @@ class Settings_Controller {
 	 *
 	 * @return string
 	 */
-	protected function get_settings_section_title( $post_label, $source ) {
-		$name_map = [
-			self::SOURCE_TAX         => 'taxonomies',
-			self::SOURCE_ACF_FIELDS  => 'ACF fields',
-			self::SOURCE_META_FIELDS => 'meta fields',
-		];
+    protected function get_settings_section_title( $post_label, $source ) {
+        $name_map = [
+            self::SOURCE_TAX             => __( '%s taxonomies', 'posts-columns-manager' ),
+            self::SOURCE_ACF_FIELDS      => __( '%s ACF fields', 'posts-columns-manager' ),
+            self::SOURCE_META_FIELDS     => __( '%s meta fields', 'posts-columns-manager' ),
+            self::SOURCE_POST_PROPERTIES => __( '%s properties', 'posts-columns-manager' ),
+        ];
 
-		return __( sprintf( '%s %s', $post_label, $name_map[ $source ] ), 'wordpress' );
-	}
+        return sprintf( $name_map[ $source ], $post_label );
+    }
 
 
 	/**
