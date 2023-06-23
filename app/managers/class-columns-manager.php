@@ -212,17 +212,20 @@ class Columns_Manager extends Abstract_Manager {
      */
     protected function get_column_value( $type, $key ) {
         switch ( $type ) {
-            case 'tax':
+            case Settings_Controller::SOURCE_TAX:
                 global $post;
                 $terms = wp_get_post_terms( $post->ID, $key );
 
                 return $this->convert_terms_to_links( $terms );
 
-            case 'acf_fields':
+            case Settings_Controller::SOURCE_ACF_FIELDS:
                 return $this->get_column_val_by_acf( $key );
 
-            case 'meta_fields':
+            case Settings_Controller::SOURCE_META_FIELDS:
                 return $this->get_column_val_by_meta( $key );
+
+            case Settings_Controller::SOURCE_POST_PROPERTIES:
+                return $this->get_column_val_by_post_property( $key );
         }
 
         return null;
@@ -255,6 +258,25 @@ class Columns_Manager extends Abstract_Manager {
         $field = acf_maybe_get_field( $name );
 
         return isset( $field['type'] ) ? $field['type'] : null;
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return string|int|null
+     */
+    protected function get_column_val_by_post_property( $key ) {
+        global $post;
+
+        if ( 'post_author' == $key && $post->post_author ) {
+            return sprintf(
+                '<a href="%s">%s</a>',
+                get_author_posts_url( $post->post_author ),
+                get_the_author_meta( 'display_name', $post->post_author )
+            );
+        }
+
+        return property_exists( $post, $key ) ? $post->$key : null;
     }
 
     protected function get_column_val_by_meta( $key ) {

@@ -100,7 +100,7 @@ class ACF_Helper {
 
 
     /**
-     * @param array|string $field_data
+     * @param array|string $field_name
      */
     public static function get_column_value_checkbox( $field_name ) {
         $field = self::acf_get_field( $field_name );
@@ -112,7 +112,7 @@ class ACF_Helper {
         }
 
         foreach ( $field['choices'] as $k => $choice ) {
-            $value = in_array( $k, $settings ) ? __( 'Yes', PCM_TEXT_DOMAIN ) : __( 'No', PCM_TEXT_DOMAIN );
+            $value = in_array( $k, $settings ) ? __( 'Yes', 'posts-columns-manager' ) : __( 'No', 'posts-columns-manager' );
 
             $values[] = count( $field['choices'] ) > 1 ? sprintf( '%s: %s', $choice, $value ) : $value;
         }
