@@ -183,8 +183,10 @@ class Filters_Manager extends Abstract_Manager {
 		}
 	}
 
-	private function get_query_val( $query_var, $filter = FILTER_SANITIZE_STRING ) {
-		return filter_input( INPUT_GET, $query_var, $filter );
+	private function get_query_val( $query_var, $filter = FILTER_UNSAFE_RAW ) {
+		$val = filter_input( INPUT_GET, $query_var, $filter );
+
+		return FILTER_UNSAFE_RAW === $filter ? sanitize_text_field( $val ) : $val;
 	}
 
 	private function get_query_val_from( $name ) {
